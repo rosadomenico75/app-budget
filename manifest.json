@@ -1,40 +1,18 @@
 {
-  "name": "App Budget - Gestione Spese Personali",
-  "short_name": "App Budget",
-  "description": "Tracciamento entrate e uscite mensili con scansione scontrini via OCR",
+  "name": "App Budget",
+  "short_name": "Budget",
+  "description": "Gestisci entrate, uscite, tag e spese ricorrenti.",
   "start_url": "./index.html",
   "scope": "./",
-  "id": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#4f46e5",
+  "background_color": "#f6ede2",
+  "theme_color": "#dd8a3f",
   "lang": "it",
-  "dir": "ltr",
   "icons": [
-    {
-      "src": "./icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    },
-    {
-      "src": "./icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    { "src": "./icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "./icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }

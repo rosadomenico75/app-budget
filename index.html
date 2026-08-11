@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#dd8a3f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,63 +12,80 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon-192.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ---------- Variabili tema ---------- */
   :root{
-    --bg:#f2f3f9;
-    --surface:#ffffff;
-    --surface-alt:#f8f9fd;
-    --border:#e7e8f2;
-    --text:#1c1b2e;
-    --text-muted:#6c6f8a;
-    --primary:#4f46e5;
-    --primary-dark:#4338ca;
-    --secondary:#8b5cf6;
-    --success:#16a34a;
-    --success-bg:#dcfce7;
-    --danger:#dc2626;
-    --danger-bg:#fee2e2;
-    --radius-lg:20px;
-    --radius-md:14px;
-    --radius-sm:10px;
-    --shadow:0 8px 24px rgba(30,27,75,0.10);
-    --shadow-sm:0 2px 8px rgba(30,27,75,0.08);
+    --bg:oklch(0.965 0.008 60);
+    --surface:oklch(0.995 0.003 60);
+    --surface-alt:oklch(0.95 0.012 58);
+    --border:oklch(0.885 0.016 55);
+    --text:oklch(0.24 0.018 45);
+    --text-muted:oklch(0.53 0.025 45);
+    --primary:oklch(0.7 0.15 52);
+    --primary-dark:oklch(0.55 0.15 47);
+    --secondary:oklch(0.63 0.18 26);
+    --success:oklch(0.56 0.13 149);
+    --success-bg:oklch(0.93 0.055 149);
+    --danger:oklch(0.55 0.2 16);
+    --danger-bg:oklch(0.94 0.045 16);
+    --radius-lg:22px;
+    --radius-md:15px;
+    --radius-sm:11px;
+    --shadow:0 12px 30px oklch(0.3 0.05 40 / 0.12);
+    --shadow-sm:0 3px 10px oklch(0.3 0.05 40 / 0.08);
     --safe-top:env(safe-area-inset-top, 0px);
     --safe-bottom:env(safe-area-inset-bottom, 0px);
+    --font-display:"Space Grotesk",Manrope,sans-serif;
+    --font-body:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   }
   @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#0f1120;
-      --surface:#1b1d33;
-      --surface-alt:#20223a;
-      --border:#31344f;
-      --text:#f1f1fb;
-      --text-muted:#9497b8;
-      --success-bg:#123322;
-      --danger-bg:#3a1620;
-      --shadow:0 8px 24px rgba(0,0,0,0.35);
-      --shadow-sm:0 2px 8px rgba(0,0,0,0.3);
+    :root:not([data-theme="light"]):not([data-theme="dark"]){
+      --bg:oklch(0.2 0.015 45);
+      --surface:oklch(0.25 0.016 45);
+      --surface-alt:oklch(0.29 0.018 45);
+      --border:oklch(0.36 0.022 45);
+      --text:oklch(0.95 0.008 60);
+      --text-muted:oklch(0.7 0.025 55);
+      --success-bg:oklch(0.3 0.05 149);
+      --danger-bg:oklch(0.32 0.06 16);
+      --shadow:0 12px 30px rgba(0,0,0,0.45);
+      --shadow-sm:0 3px 10px rgba(0,0,0,0.35);
     }
+  }
+  :root[data-theme="dark"]{
+    --bg:oklch(0.2 0.015 45);
+    --surface:oklch(0.25 0.016 45);
+    --surface-alt:oklch(0.29 0.018 45);
+    --border:oklch(0.36 0.022 45);
+    --text:oklch(0.95 0.008 60);
+    --text-muted:oklch(0.7 0.025 55);
+    --success-bg:oklch(0.3 0.05 149);
+    --danger-bg:oklch(0.32 0.06 16);
+    --shadow:0 12px 30px rgba(0,0,0,0.45);
+    --shadow-sm:0 3px 10px rgba(0,0,0,0.35);
   }
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
   body{
     margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:var(--font-body);
     background:var(--bg);
     color:var(--text);
     overscroll-behavior-y:none;
     -webkit-user-select:none;
     user-select:none;
   }
-  input,textarea{-webkit-user-select:text; user-select:text;}
+  input,textarea{-webkit-user-select:text; user-select:text; font-family:inherit;}
   button{font-family:inherit;}
   h1,h2,h3,p{margin:0;}
   .hidden{display:none !important;}
   ::-webkit-scrollbar{width:0;height:0;}
+  a{color:var(--primary-dark);}
+  a:hover{color:var(--secondary);}
 
-  /* ---------- Layout generale ---------- */
   #app{
     max-width:520px;
     margin:0 auto;
@@ -80,8 +97,10 @@
 
   /* ---------- Header ---------- */
   .app-header{
-    background:linear-gradient(135deg,var(--primary),var(--secondary));
-    padding:calc(var(--safe-top) + 18px) 20px 56px;
+    background:
+      radial-gradient(circle at 88% 4%, oklch(1 0 0 / 0.16), transparent 42%),
+      linear-gradient(135deg,var(--primary),var(--secondary));
+    padding:calc(var(--safe-top) + 18px) 20px 58px;
     color:#fff;
     position:relative;
   }
@@ -90,7 +109,7 @@
     align-items:center;
     justify-content:space-between;
   }
-  .app-title{font-size:22px; font-weight:700; letter-spacing:.2px;}
+  .app-title{font-family:var(--font-display); font-size:23px; font-weight:700; letter-spacing:-0.2px;}
   .month-switch{
     display:flex;
     align-items:center;
@@ -102,7 +121,7 @@
   .month-switch button{
     width:32px;height:32px;
     border:none;
-    background:rgba(255,255,255,0.22);
+    background:rgba(255,255,255,0.2);
     color:#fff;
     border-radius:50%;
     font-size:18px;
@@ -111,7 +130,7 @@
   }
   .month-switch button:active{background:rgba(255,255,255,0.35);}
   .month-label{
-    font-size:16px;
+    font-size:15px;
     font-weight:600;
     min-width:108px;
     text-align:center;
@@ -124,12 +143,13 @@
     border-radius:var(--radius-lg);
     box-shadow:var(--shadow);
     padding:20px 20px;
-    margin:16px 0 -52px;
+    margin:16px 0 -54px;
     position:relative;
     z-index:2;
+    border:1px solid oklch(1 0 0 / 0.4);
   }
-  .balance-card .saldo-label{font-size:15px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.4px;}
-  .balance-card .saldo-value{font-size:36px; font-weight:800; margin-top:4px;}
+  .balance-card .saldo-label{font-size:13px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.5px;}
+  .balance-card .saldo-value{font-family:var(--font-display); font-size:38px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; letter-spacing:-0.5px;}
   .balance-card .saldo-value.negativo{color:var(--danger);}
   .balance-card .saldo-value.positivo{color:var(--success);}
   .mini-stats{display:flex; gap:10px; margin-top:16px;}
@@ -139,25 +159,27 @@
     border-radius:var(--radius-md);
     padding:12px 12px;
   }
-  .mini-stat .label{font-size:14px; color:var(--text-muted); font-weight:600; display:flex; align-items:center; gap:5px;}
-  .mini-stat .value{font-size:19px; font-weight:700; margin-top:4px;}
-  .mini-stat.entrate .value{color:var(--success);}
-  .mini-stat.uscite .value{color:var(--danger);}
+  .mini-stat .label{font-size:13px; color:var(--text-muted); font-weight:700; display:flex; align-items:center; gap:5px;}
+  .mini-stat .label svg{width:13px;height:13px;flex-shrink:0;}
+  .mini-stat .value{font-family:var(--font-display); font-size:19px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums;}
+  .mini-stat.entrate .label,.mini-stat.entrate .value{color:var(--success);}
+  .mini-stat.uscite .label,.mini-stat.uscite .value{color:var(--danger);}
 
   /* ---------- Contenuto scrollabile ---------- */
   .views{
     flex:1;
-    padding:68px 16px 110px;
+    padding:70px 16px 112px;
   }
   .view{display:flex; flex-direction:column; gap:14px;}
 
   /* ---------- Lista movimenti ---------- */
   .day-group{display:flex; flex-direction:column; gap:8px;}
   .day-heading{
-    font-size:15px;
+    font-size:13px;
     font-weight:700;
     color:var(--text-muted);
     text-transform:capitalize;
+    letter-spacing:.3px;
     padding:2px 4px;
   }
   .entry-row{
@@ -169,32 +191,40 @@
     padding:14px 14px;
     box-shadow:var(--shadow-sm);
     cursor:pointer;
+    transition:transform .12s ease;
   }
   .entry-row:active{transform:scale(0.98);}
   .tag-dot{
     width:42px;height:42px;
-    border-radius:12px;
+    border-radius:13px;
     display:flex;align-items:center;justify-content:center;
-    font-size:18px;
     flex-shrink:0;
     color:#fff;
-    font-weight:700;
   }
+  .tag-dot svg{width:19px;height:19px;}
   .entry-info{flex:1; min-width:0;}
-  .entry-desc{font-size:17px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .entry-tag{font-size:14px; color:var(--text-muted); margin-top:1px;}
-  .entry-amount{font-size:18px; font-weight:700; flex-shrink:0;}
+  .entry-desc{font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .entry-tag{font-size:13px; color:var(--text-muted); margin-top:1px;}
+  .entry-amount{font-family:var(--font-display); font-size:17px; font-weight:700; flex-shrink:0; font-variant-numeric:tabular-nums;}
   .entry-amount.entrata{color:var(--success);}
   .entry-amount.uscita{color:var(--danger);}
 
   .empty-state{
     text-align:center;
-    padding:50px 20px;
+    padding:46px 20px;
     color:var(--text-muted);
-    font-size:16px;
-    line-height:1.5;
+    font-size:15px;
+    line-height:1.55;
   }
-  .empty-state .emoji{font-size:42px; display:block; margin-bottom:10px;}
+  .empty-state .empty-icon{
+    width:60px;height:60px;
+    border-radius:50%;
+    background:var(--surface-alt);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 14px;
+    color:var(--primary-dark);
+  }
+  .empty-state .empty-icon svg{width:28px;height:28px;}
 
   /* ---------- Report ---------- */
   .segmented{
@@ -210,7 +240,7 @@
     background:transparent;
     padding:10px 0;
     border-radius:999px;
-    font-size:16px;
+    font-size:15px;
     font-weight:600;
     color:var(--text-muted);
     cursor:pointer;
@@ -223,16 +253,16 @@
     box-shadow:var(--shadow-sm);
     padding:18px;
   }
-  .report-card h3{font-size:16px; margin-bottom:14px;}
+  .report-card h3{font-family:var(--font-display); font-size:15px; font-weight:600; margin-bottom:14px;}
   .totals-row{display:flex; gap:10px;}
   .totals-row .mini-stat{background:var(--surface-alt);}
 
   .donut-wrap{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:center;}
   .donut-legend{flex:1; min-width:140px; display:flex; flex-direction:column; gap:8px;}
-  .legend-item{display:flex; align-items:center; gap:8px; font-size:15px;}
-  .legend-swatch{width:11px;height:11px;border-radius:3px; flex-shrink:0;}
+  .legend-item{display:flex; align-items:center; gap:8px; font-size:14px;}
+  .legend-swatch{width:10px;height:10px;border-radius:3px; flex-shrink:0;}
   .legend-name{flex:1; color:var(--text);}
-  .legend-value{color:var(--text-muted); font-weight:600;}
+  .legend-value{color:var(--text-muted); font-weight:600; font-variant-numeric:tabular-nums;}
 
   .bar-chart-svg{width:100%; height:auto; overflow:visible;}
 
@@ -245,15 +275,14 @@
     padding:12px 14px;
     box-shadow:var(--shadow-sm);
   }
-  .tag-color-dot{width:18px;height:18px;border-radius:5px; flex-shrink:0;}
-  .tag-name{flex:1; font-size:17px; font-weight:600;}
+  .tag-color-dot{width:16px;height:16px;border-radius:5px; flex-shrink:0;}
+  .tag-name{flex:1; font-size:16px; font-weight:600;}
   .icon-btn{
-    width:40px;height:40px;
+    width:38px;height:38px;
     border:none;
     background:var(--surface-alt);
     border-radius:10px;
     display:flex;align-items:center;justify-content:center;
-    font-size:17px;
     cursor:pointer;
     color:var(--text-muted);
   }
@@ -265,9 +294,9 @@
     border:2px dashed var(--border);
     border-radius:var(--radius-md);
     padding:14px;
-    color:var(--primary);
+    color:var(--primary-dark);
     font-weight:700;
-    font-size:16px;
+    font-size:15px;
     cursor:pointer;
   }
 
@@ -291,24 +320,25 @@
     display:flex; flex-direction:column; align-items:center; gap:3px;
     padding:6px 0;
     color:var(--text-muted);
-    font-size:13px;
+    font-size:12px;
     font-weight:600;
     cursor:pointer;
     border-radius:12px;
   }
-  .nav-btn .nav-icon{font-size:23px; position:relative;}
-  .nav-btn.active{color:var(--primary);}
+  .nav-btn .nav-icon{position:relative; display:flex;}
+  .nav-btn .nav-icon svg{width:23px;height:23px;}
+  .nav-btn.active{color:var(--primary-dark);}
   .nav-badge{
     position:absolute;
-    top:2px;
-    right:calc(50% - 22px);
-    min-width:17px;
-    height:17px;
+    top:-4px;
+    right:-9px;
+    min-width:16px;
+    height:16px;
     padding:0 4px;
     border-radius:999px;
     background:var(--danger);
     color:#fff;
-    font-size:10.5px;
+    font-size:10px;
     font-weight:800;
     display:flex; align-items:center; justify-content:center;
     line-height:1;
@@ -320,18 +350,19 @@
     align-items:center;
     gap:10px;
     background:var(--danger-bg);
-    border:1px solid var(--danger);
+    border:1px solid oklch(from var(--danger) l c h / 0.35);
     border-radius:var(--radius-md);
     padding:14px 14px;
   }
-  .reminder-banner .reminder-icon{font-size:22px; flex-shrink:0;}
-  .reminder-banner .reminder-text{flex:1; font-size:15px; color:var(--text); line-height:1.35;}
-  .reminder-banner .reminder-text b{display:block; font-size:16px;}
+  .reminder-banner .reminder-icon{color:var(--danger); flex-shrink:0; display:flex;}
+  .reminder-banner .reminder-icon svg{width:22px;height:22px;}
+  .reminder-banner .reminder-text{flex:1; font-size:14px; color:var(--text); line-height:1.35;}
+  .reminder-banner .reminder-text b{display:block; font-size:15px;}
   .reminder-banner button{
     border:none;
     background:var(--danger);
     color:#fff;
-    font-size:14px;
+    font-size:13px;
     font-weight:700;
     padding:10px 14px;
     border-radius:999px;
@@ -342,18 +373,18 @@
   .fab{
     position:fixed;
     right:calc(50% - 260px + 20px);
-    bottom:calc(74px + var(--safe-bottom));
-    width:60px;height:60px;
+    bottom:calc(76px + var(--safe-bottom));
+    width:58px;height:58px;
     border-radius:50%;
     background:linear-gradient(135deg,var(--primary),var(--secondary));
     color:#fff;
     border:none;
-    font-size:30px;
-    box-shadow:0 8px 20px rgba(79,70,229,0.4);
     display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 22px oklch(0.55 0.16 40 / 0.4);
     cursor:pointer;
     z-index:21;
   }
+  .fab svg{width:26px;height:26px;}
   @media (max-width:559px){
     .fab{right:20px;}
   }
@@ -362,7 +393,7 @@
   /* ---------- Bottom sheet ---------- */
   .sheet-overlay{
     position:fixed; inset:0;
-    background:rgba(15,17,32,0.5);
+    background:oklch(0.2 0.02 45 / 0.5);
     z-index:30;
     display:flex;
     align-items:flex-end;
@@ -376,7 +407,7 @@
     background:var(--surface);
     width:100%;
     max-width:520px;
-    border-radius:22px 22px 0 0;
+    border-radius:24px 24px 0 0;
     padding:10px 20px calc(20px + var(--safe-bottom));
     max-height:88vh;
     overflow-y:auto;
@@ -384,13 +415,13 @@
     transition:transform .25s cubic-bezier(.2,.9,.3,1);
   }
   .sheet-overlay.open .sheet{transform:translateY(0);}
-  .sheet-handle{width:40px;height:4px; background:var(--border); border-radius:99px; margin:6px auto 14px;}
-  .sheet-title{font-size:19px; font-weight:700; margin-bottom:16px;}
+  .sheet-handle{width:38px;height:4px; background:var(--border); border-radius:99px; margin:6px auto 14px;}
+  .sheet-title{font-family:var(--font-display); font-size:19px; font-weight:600; margin-bottom:16px;}
 
   .type-toggle{display:flex; background:var(--surface-alt); border-radius:14px; padding:4px; gap:4px; margin-bottom:16px;}
   .type-toggle button{
     flex:1; border:none; background:transparent; padding:13px 0; border-radius:11px;
-    font-size:17px; font-weight:700; color:var(--text-muted); cursor:pointer;
+    font-size:16px; font-weight:700; color:var(--text-muted); cursor:pointer;
   }
   .type-toggle button.active.uscita{background:var(--danger-bg); color:var(--danger);}
   .type-toggle button.active.entrata{background:var(--success-bg); color:var(--success);}
@@ -399,25 +430,35 @@
   .amount-field input{
     width:100%;
     border:none; background:transparent;
-    font-size:50px; font-weight:800; text-align:center;
+    font-family:var(--font-display);
+    font-size:48px; font-weight:700; text-align:center;
     color:var(--text);
     outline:none;
+    font-variant-numeric:tabular-nums;
   }
-  .amount-field .curr{font-size:26px; color:var(--text-muted); vertical-align:8px;}
+  .amount-field .curr{font-size:24px; color:var(--text-muted); vertical-align:8px;}
 
-  .field-label{font-size:14px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.3px; margin:14px 0 8px;}
+  .field-label{font-size:12.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; margin:14px 0 8px;}
   .text-field{
     width:100%;
     border:1px solid var(--border);
     background:var(--surface-alt);
     border-radius:var(--radius-sm);
     padding:14px 14px;
-    font-size:17px;
+    font-size:16px;
     color:var(--text);
     outline:none;
   }
+  .text-field:focus{border-color:var(--primary);}
   .date-field-row{display:flex; align-items:center; gap:10px;}
   .date-field-row input{flex:1;}
+
+  .search-wrap{position:relative;}
+  .search-wrap svg{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    width:17px;height:17px; color:var(--text-muted); pointer-events:none;
+  }
+  .search-wrap input{padding-left:40px;}
 
   .tag-chips{display:flex; flex-wrap:wrap; gap:8px;}
   .tag-chip{
@@ -425,13 +466,13 @@
     border-radius:999px;
     border:1.5px solid var(--border);
     background:var(--surface-alt);
-    font-size:15px;
+    font-size:14px;
     font-weight:600;
     color:var(--text);
     cursor:pointer;
     display:flex; align-items:center; gap:6px;
   }
-  .tag-chip .dot{width:10px;height:10px;border-radius:3px;}
+  .tag-chip .dot{width:9px;height:9px;border-radius:3px;}
   .tag-chip.selected{border-color:transparent; color:#fff;}
 
   .scan-btn{
@@ -439,25 +480,28 @@
     display:flex; align-items:center; justify-content:center; gap:8px;
     background:var(--surface-alt);
     border:1.5px dashed var(--primary);
-    color:var(--primary);
+    color:var(--primary-dark);
     border-radius:var(--radius-sm);
     padding:13px;
     font-weight:700;
-    font-size:16px;
+    font-size:15px;
     cursor:pointer;
     margin:16px 0 4px;
   }
+  .scan-btn svg{width:17px;height:17px;}
 
   .sheet-actions{display:flex; gap:10px; margin-top:20px;}
   .btn{
     flex:1;
+    display:flex; align-items:center; justify-content:center; gap:8px;
     border:none;
     border-radius:var(--radius-sm);
     padding:16px;
-    font-size:17px;
+    font-size:16px;
     font-weight:700;
     cursor:pointer;
   }
+  .btn svg{width:16px;height:16px;}
   .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff;}
   .btn-secondary{background:var(--surface-alt); color:var(--text); border:1px solid var(--border);}
   .btn-danger-outline{background:var(--danger-bg); color:var(--danger);}
@@ -465,7 +509,7 @@
 
   .color-swatches{display:flex; flex-wrap:wrap; gap:10px;}
   .swatch{
-    width:34px;height:34px;
+    width:32px;height:32px;
     border-radius:50%;
     cursor:pointer;
     border:3px solid transparent;
@@ -475,7 +519,7 @@
   /* ---------- Overlay OCR ---------- */
   .scan-overlay{
     position:fixed; inset:0;
-    background:rgba(15,17,32,0.75);
+    background:oklch(0.2 0.02 45 / 0.78);
     z-index:40;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     color:#fff;
@@ -484,7 +528,7 @@
     padding:20px;
   }
   .spinner{
-    width:44px;height:44px;
+    width:42px;height:42px;
     border-radius:50%;
     border:4px solid rgba(255,255,255,0.25);
     border-top-color:#fff;
@@ -494,14 +538,14 @@
 
   .toast{
     position:fixed;
-    bottom:calc(84px + var(--safe-bottom));
+    bottom:calc(86px + var(--safe-bottom));
     left:50%;
     transform:translateX(-50%) translateY(20px);
-    background:#1c1b2e;
+    background:oklch(0.24 0.018 45);
     color:#fff;
-    padding:13px 20px;
+    padding:13px 18px;
     border-radius:999px;
-    font-size:15px;
+    font-size:14px;
     font-weight:600;
     z-index:50;
     opacity:0;
@@ -509,10 +553,14 @@
     transition:all .25s ease;
     max-width:90%;
     text-align:center;
+    display:flex;
+    align-items:center;
+    gap:8px;
   }
+  .toast svg{flex-shrink:0;}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-  .backup-hint{font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:14px;}
+  .backup-hint{font-size:13.5px; color:var(--text-muted); line-height:1.5; margin-bottom:14px;}
 
   .update-banner{
     position:fixed;
@@ -520,20 +568,22 @@
     max-width:520px;
     margin:0 auto;
     z-index:60;
-    background:#1c1b2e;
+    background:oklch(0.24 0.018 45);
     color:#fff;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:14px;
     padding:calc(var(--safe-top) + 10px) 16px 10px;
-    font-size:14px;
+    font-size:13.5px;
     font-weight:600;
     text-align:center;
     transform:translateY(-100%);
     transition:transform .25s ease;
   }
   .update-banner.show{transform:translateY(0);}
+  .update-banner span{display:flex; align-items:center; gap:8px;}
+  .update-banner svg{width:15px;height:15px;}
   .update-banner button{
     border:none;
     background:var(--primary);
@@ -545,10 +595,53 @@
     cursor:pointer;
     flex-shrink:0;
   }
+
+  @keyframes fadeInUp{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .chart-fade{animation:fadeInUp .4s ease both;}
+  .bar-group{cursor:pointer; transition:opacity .15s ease;}
+  .bar-tooltip{font-size:13px; color:var(--text); text-align:center; margin-top:10px; font-weight:600;}
+  .bar-tooltip .muted{color:var(--text-muted); font-weight:500; margin:0 2px;}
+
+  .onboarding-overlay{
+    position:fixed; inset:0; z-index:70;
+    background:linear-gradient(160deg,var(--primary),var(--secondary));
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .onboarding-card{
+    background:var(--surface); color:var(--text);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow);
+    padding:32px 26px; max-width:380px; width:100%; text-align:center;
+  }
+  .onboarding-icon{
+    width:60px;height:60px; border-radius:50%; margin:0 auto 18px;
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    display:flex; align-items:center; justify-content:center; color:#fff;
+  }
+  .onboarding-icon svg{width:28px;height:28px;}
+  .onboarding-card h2{font-family:var(--font-display); font-size:21px; font-weight:700; margin-bottom:8px;}
+  .onboarding-card p{font-size:14.5px; color:var(--text-muted); line-height:1.5; margin-bottom:18px;}
+  .onboarding-features{display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:22px;}
+  .onboarding-feature{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--text);}
+  .onboarding-feature svg{width:18px;height:18px; color:var(--primary-dark); flex-shrink:0;}
 </style>
 </head>
 <body>
 <div id="app">
+
+  <div class="onboarding-overlay hidden" id="onboardingOverlay">
+    <div class="onboarding-card">
+      <div class="onboarding-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <h2>Benvenuto in App Budget</h2>
+      <p>Tieni sotto controllo entrate e uscite in pochi tocchi, tutto salvato sul tuo dispositivo.</p>
+      <div class="onboarding-features">
+        <div class="onboarding-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.2L4 3a1 1 0 0 0-1 1l.2 5.59a2 2 0 0 0 .58 1.41l9.59 9.59a2 2 0 0 0 2.82 0l4.4-4.4a2 2 0 0 0 0-2.82Z"/></svg>Organizza le spese con i tag</div>
+        <div class="onboarding-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Automatizza affitto e abbonamenti</div>
+        <div class="onboarding-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="12" y="7" width="3" height="13"/><rect x="18" y="15" width="3" height="5"/></svg>Report chiari su ogni mese</div>
+      </div>
+      <button class="btn btn-primary" id="onboardingStartBtn" style="width:100%;">Inizia</button>
+    </div>
+  </div>
 
   <!-- ===== HEADER ===== -->
   <header class="app-header">
@@ -565,11 +658,11 @@
       <div class="saldo-value" id="saldoValue">€ 0,00</div>
       <div class="mini-stats">
         <div class="mini-stat entrate">
-          <div class="label">↑ Entrate</div>
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg>Entrate</div>
           <div class="value" id="totEntrate">€ 0,00</div>
         </div>
         <div class="mini-stat uscite">
-          <div class="label">↓ Uscite</div>
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/></svg>Uscite</div>
           <div class="value" id="totUscite">€ 0,00</div>
         </div>
       </div>
@@ -582,7 +675,10 @@
     <!-- Vista Movimenti -->
     <section class="view" id="view-movimenti">
       <div id="reminderBanner"></div>
-      <input type="text" class="text-field" id="searchInput" placeholder="🔍 Cerca per descrizione...">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
+        <input type="text" class="text-field" id="searchInput" placeholder="Cerca per descrizione...">
+      </div>
       <div class="segmented" id="typeFilter">
         <button class="active" data-type-filter="all">Tutti</button>
         <button data-type-filter="entrata">Entrate</button>
@@ -603,11 +699,11 @@
         <h3>Riepilogo</h3>
         <div class="totals-row">
           <div class="mini-stat entrate">
-            <div class="label">↑ Entrate</div>
+            <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg>Entrate</div>
             <div class="value" id="repEntrate">€ 0,00</div>
           </div>
           <div class="mini-stat uscite">
-            <div class="label">↓ Uscite</div>
+            <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/></svg>Uscite</div>
             <div class="value" id="repUscite">€ 0,00</div>
           </div>
         </div>
@@ -637,11 +733,20 @@
       <button class="add-tag-btn" id="addTagBtn">+ Nuovo tag</button>
 
       <div class="report-card">
+        <h3>Aspetto</h3>
+        <div class="segmented" id="themeToggle">
+          <button data-theme="auto">Auto</button>
+          <button data-theme="light">Chiaro</button>
+          <button data-theme="dark">Scuro</button>
+        </div>
+      </div>
+
+      <div class="report-card">
         <h3>Backup dati</h3>
         <p class="backup-hint">Salva una copia di sicurezza dei tuoi dati o ripristinali da un backup precedente.</p>
         <div class="sheet-actions" style="margin-top:0;">
-          <button class="btn btn-secondary" id="exportBackupBtn">⬇️ Esporta</button>
-          <button class="btn btn-secondary" id="importBackupBtn">⬆️ Importa</button>
+          <button class="btn btn-secondary" id="exportBackupBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>Esporta</button>
+          <button class="btn btn-secondary" id="importBackupBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 21h16"/></svg>Importa</button>
         </div>
         <input type="file" accept="application/json" id="importBackupInput" class="hidden">
       </div>
@@ -652,20 +757,22 @@
   <!-- ===== NAV INFERIORE ===== -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-view="movimenti">
-      <span class="nav-icon">📋<span class="nav-badge hidden" id="navBadge">0</span></span>Movimenti
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg><span class="nav-badge hidden" id="navBadge">0</span></span>Movimenti
     </button>
     <button class="nav-btn" data-view="report">
-      <span class="nav-icon">📊</span>Report
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="12" y="7" width="3" height="13"/><rect x="18" y="15" width="3" height="5"/></svg></span>Report
     </button>
     <button class="nav-btn" data-view="ricorrenti">
-      <span class="nav-icon">🔁<span class="nav-badge hidden" id="recurringNavBadge">0</span></span>Ricorrenti
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="nav-badge hidden" id="recurringNavBadge">0</span></span>Ricorrenti
     </button>
     <button class="nav-btn" data-view="tag">
-      <span class="nav-icon">🏷️</span>Tag
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.2L4 3a1 1 0 0 0-1 1l.2 5.59a2 2 0 0 0 .58 1.41l9.59 9.59a2 2 0 0 0 2.82 0l4.4-4.4a2 2 0 0 0 0-2.82Z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg></span>Tag
     </button>
   </nav>
 
-  <button class="fab" id="fabAdd" aria-label="Aggiungi movimento">+</button>
+  <button class="fab" id="fabAdd" aria-label="Aggiungi movimento">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 
   <!-- ===== SHEET: aggiungi/modifica movimento ===== -->
   <div class="sheet-overlay" id="entrySheetOverlay">
@@ -683,7 +790,7 @@
         <input type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00" id="amountInput">
       </div>
 
-      <button type="button" class="scan-btn" id="scanReceiptBtn">📷 Scansiona scontrino</button>
+      <button type="button" class="scan-btn" id="scanReceiptBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>Scansiona scontrino</button>
       <input type="file" accept="image/*" capture="environment" id="receiptFileInput" class="hidden">
 
       <div class="field-label">Data</div>
@@ -776,7 +883,7 @@
   <div class="toast" id="toast"></div>
 
   <div class="update-banner" id="updateBanner">
-    <span>🔄 Nuova versione disponibile</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Nuova versione disponibile</span>
     <button type="button" id="updateNowBtn">Aggiorna</button>
   </div>
 
@@ -785,6 +892,22 @@
 <script>
 (function(){
   'use strict';
+
+  /* =========================================================
+     ICONE (SVG inline, usate nel markup generato via JS)
+     ========================================================= */
+  const ICON = {
+    info: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="12" y="7" width="3" height="13"/><rect x="18" y="15" width="3" height="5"/></svg>',
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+    repeat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="10" x2="12" y2="15"/><circle cx="12" cy="17.5" r="0.6" fill="currentColor" stroke="none"/></svg>',
+    calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>',
+    receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>',
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>',
+    tagIcon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.2L4 3a1 1 0 0 0-1 1l.2 5.59a2 2 0 0 0 .58 1.41l9.59 9.59a2 2 0 0 0 2.82 0l4.4-4.4a2 2 0 0 0 0-2.82Z"/></svg>'
+  };
 
   /* =========================================================
      STORAGE
@@ -856,7 +979,6 @@
   function formatCurrency(n){ return currencyFmt.format(n || 0); }
 
   function toDateKey(d){
-    // YYYY-MM-DD locale, senza problemi di fuso orario
     const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
     return `${y}-${m}-${day}`;
   }
@@ -888,7 +1010,8 @@
     currentRecurringId: null,
     editingRecurringId: null,
     recurringEntryType: 'uscita',
-    recurringSelectedTagId: null
+    recurringSelectedTagId: null,
+    selectedBarMonth: null
   };
 
   /* =========================================================
@@ -914,11 +1037,47 @@
      ========================================================= */
   let toastTimer = null;
   function showToast(msg){
-    toastEl.textContent = msg;
+    toastEl.innerHTML = `<span style="display:flex;">${ICON.info}</span><span>${escapeHtml(msg)}</span>`;
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
   }
+
+  /* =========================================================
+     ONBOARDING (prima apertura)
+     ========================================================= */
+  const KEY_ONBOARDED = 'budgetapp_onboarded';
+  function initOnboarding(){
+    if(localStorage.getItem(KEY_ONBOARDED)) return;
+    $('#onboardingOverlay').classList.remove('hidden');
+  }
+  $('#onboardingStartBtn').addEventListener('click', () => {
+    localStorage.setItem(KEY_ONBOARDED, '1');
+    $('#onboardingOverlay').classList.add('hidden');
+  });
+
+  /* =========================================================
+     TEMA (chiaro / scuro / auto)
+     ========================================================= */
+  const KEY_THEME = 'budgetapp_theme';
+  function applyTheme(theme){
+    if(theme === 'light' || theme === 'dark'){
+      document.documentElement.setAttribute('data-theme', theme);
+    }else{
+      document.documentElement.removeAttribute('data-theme');
+    }
+    $$('#themeToggle button').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+  }
+  function initTheme(){
+    const saved = localStorage.getItem(KEY_THEME) || 'auto';
+    applyTheme(saved);
+  }
+  $('#themeToggle').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    localStorage.setItem(KEY_THEME, btn.dataset.theme);
+    applyTheme(btn.dataset.theme);
+  });
 
   /* =========================================================
      NAVIGAZIONE VISTE
@@ -965,7 +1124,7 @@
     monthLabel.textContent = monthLabelFmt.format(state.currentMonth);
     const totals = computeTotals(entriesOfMonth(state.currentMonth));
     saldoValue.textContent = formatCurrency(totals.saldo);
-    saldoValue.className = 'saldo-value ' + (totals.saldo > 0 ? 'positivo' : totals.saldo < 0 ? 'negativo' : '');
+    saldoValue.className = 'saldo-value chart-fade ' + (totals.saldo > 0 ? 'positivo' : totals.saldo < 0 ? 'negativo' : '');
     totEntrate.textContent = formatCurrency(totals.entrate);
     totUscite.textContent = formatCurrency(totals.uscite);
   }
@@ -1034,11 +1193,11 @@
       const filtersActive = state.searchQuery.trim() || state.typeFilter !== 'all' || state.tagFilterId !== 'all';
       entriesList.innerHTML = filtersActive ? `
         <div class="empty-state">
-          <span class="emoji">🔍</span>
+          <span class="empty-icon">${ICON.search}</span>
           Nessun movimento corrisponde ai filtri.
         </div>` : `
         <div class="empty-state">
-          <span class="emoji">🧾</span>
+          <span class="empty-icon">${ICON.receipt}</span>
           Nessun movimento questo mese.<br>Tocca "+" per aggiungere la prima spesa o entrata.
         </div>`;
       return;
@@ -1065,7 +1224,7 @@
         const row = document.createElement('div');
         row.className = 'entry-row';
         row.innerHTML = `
-          <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${tag ? '' : '?'}</div>
+          <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${tag ? '' : ICON.tagIcon}</div>
           <div class="entry-info">
             <div class="entry-desc">${escapeHtml(entry.description) || (tag ? tag.name : 'Senza tag')}</div>
             <div class="entry-tag">${tag ? tag.name : 'Senza tag'}</div>
@@ -1104,7 +1263,7 @@
 
     banner.innerHTML = `
       <div class="reminder-banner">
-        <span class="reminder-icon">⚠️</span>
+        <span class="reminder-icon">${ICON.warning}</span>
         <span class="reminder-text"><b>${count} moviment${count === 1 ? 'o' : 'i'} senza tag</b>Classificali per avere report precisi.</span>
         <button type="button" id="classifyNowBtn">Classifica ora</button>
       </div>`;
@@ -1146,8 +1305,8 @@
       row.innerHTML = `
         <div class="tag-color-dot" style="background:${tag.color}"></div>
         <div class="tag-name">${escapeHtml(tag.name)}</div>
-        <button class="icon-btn" data-action="edit" aria-label="Modifica tag">✏️</button>
-        <button class="icon-btn danger" data-action="delete" aria-label="Elimina tag">🗑️</button>
+        <button class="icon-btn" data-action="edit" aria-label="Modifica tag">${ICON.edit}</button>
+        <button class="icon-btn danger" data-action="delete" aria-label="Elimina tag">${ICON.trash}</button>
       `;
       row.querySelector('[data-action="edit"]').addEventListener('click', () => openTagSheet(tag.id));
       row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteTag(tag.id));
@@ -1392,7 +1551,7 @@
     if(list.length === 0){
       recurringList.innerHTML = `
         <div class="empty-state">
-          <span class="emoji">🔁</span>
+          <span class="empty-icon">${ICON.repeat}</span>
           Nessuna spesa ricorrente.<br>Aggiungi affitto, abbonamenti o altre spese fisse mensili.
         </div>`;
       return;
@@ -1404,12 +1563,12 @@
       row.className = 'entry-row';
       row.style.cursor = 'default';
       row.innerHTML = `
-        <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">🔁</div>
+        <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${ICON.repeat}</div>
         <div class="entry-info">
           <div class="entry-desc">${escapeHtml(rec.description)}</div>
           <div class="entry-tag">${tag ? tag.name : 'Senza tag'} · Giorno ${rec.dayOfMonth} · ${rec.type === 'uscita' ? '-' : '+'} ${formatCurrency(rec.amount)}</div>
         </div>
-        <button class="icon-btn" data-action="edit" aria-label="Modifica spesa ricorrente">✏️</button>
+        <button class="icon-btn" data-action="edit" aria-label="Modifica spesa ricorrente">${ICON.edit}</button>
       `;
       row.querySelector('[data-action="edit"]').addEventListener('click', () => openRecurringSheet(rec.id));
       recurringList.appendChild(row);
@@ -1547,7 +1706,7 @@
 
     banner.innerHTML = `
       <div class="reminder-banner">
-        <span class="reminder-icon">📅</span>
+        <span class="reminder-icon">${ICON.calendar}</span>
         <span class="reminder-text"><b>${count} spes${count === 1 ? 'a ricorrente' : 'e ricorrenti'} da confermare</b>Controlla importo e data prima di aggiungerle.</span>
         <button type="button" id="reviewRecurringBtn">Rivedi</button>
       </div>`;
@@ -1711,7 +1870,7 @@
     const total = segments.reduce((s,x) => s + x.value, 0);
 
     if(total === 0){
-      wrap.innerHTML = '<div class="empty-state" style="padding:20px 0;">Nessuna uscita da mostrare.</div>';
+      wrap.innerHTML = `<div class="empty-state chart-fade" style="padding:20px 0;"><span class="empty-icon">${ICON.chart}</span>Nessuna uscita da mostrare in questo periodo.</div>`;
       return;
     }
 
@@ -1742,7 +1901,7 @@
         <span class="legend-value">${formatCurrency(seg.value)}</span>
       </div>`).join('');
 
-    wrap.innerHTML = `${svg}<div class="donut-legend">${legend}</div>`;
+    wrap.innerHTML = `<div class="donut-wrap chart-fade" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;width:100%;">${svg}<div class="donut-legend">${legend}</div></div>`;
   }
 
   function renderBarChart(allEntries){
@@ -1764,6 +1923,10 @@
     const chartH = 130, barW = 14, gapInGroup = 4, groupW = 56;
     const width = groupW * months.length;
 
+    if(state.selectedBarMonth === null || state.selectedBarMonth >= months.length){
+      state.selectedBarMonth = months.length - 1;
+    }
+
     let bars = '';
     months.forEach((m, i) => {
       const groupX = i * groupW;
@@ -1771,22 +1934,38 @@
       const hU = (m.uscite / max) * chartH;
       const xE = groupX + groupW/2 - gapInGroup/2 - barW;
       const xU = groupX + groupW/2 + gapInGroup/2;
+      const sel = i === state.selectedBarMonth;
       bars += `
-        <rect x="${xE}" y="${chartH - hE}" width="${barW}" height="${hE}" rx="3" fill="var(--success,#16a34a)" />
-        <rect x="${xU}" y="${chartH - hU}" width="${barW}" height="${hU}" rx="3" fill="var(--danger,#dc2626)" />
-        <text x="${groupX + groupW/2}" y="${chartH + 16}" text-anchor="middle" font-size="10" fill="#6c6f8a" text-transform="capitalize">${m.label}</text>
+        <g class="bar-group" data-idx="${i}" style="opacity:${sel ? 1 : 0.5}">
+          <rect x="${groupX}" y="0" width="${groupW}" height="${chartH}" fill="transparent"/>
+          <rect x="${xE}" y="${chartH - hE}" width="${barW}" height="${hE}" rx="3" fill="var(--success,#2c8a5f)" />
+          <rect x="${xU}" y="${chartH - hU}" width="${barW}" height="${hU}" rx="3" fill="var(--danger,#c8402a)" />
+          <text x="${groupX + groupW/2}" y="${chartH + 16}" text-anchor="middle" font-size="10" font-weight="${sel ? '700' : '400'}" fill="${sel ? 'var(--text)' : '#8a7d70'}">${m.label}</text>
+        </g>
       `;
     });
 
+    const selMonth = months[state.selectedBarMonth];
+
     wrap.innerHTML = `
-      <svg class="bar-chart-svg" viewBox="0 0 ${width} ${chartH + 24}">
-        ${bars}
-      </svg>
-      <div class="donut-legend" style="flex-direction:row; justify-content:center; gap:16px; margin-top:10px;">
-        <div class="legend-item"><span class="legend-swatch" style="background:#16a34a"></span><span class="legend-name">Entrate</span></div>
-        <div class="legend-item"><span class="legend-swatch" style="background:#dc2626"></span><span class="legend-name">Uscite</span></div>
+      <div class="chart-fade">
+        <svg class="bar-chart-svg" viewBox="0 0 ${width} ${chartH + 24}">
+          ${bars}
+        </svg>
+        <div class="bar-tooltip">${selMonth.label}<span class="muted">·</span>Entrate ${formatCurrency(selMonth.entrate)}<span class="muted">·</span>Uscite ${formatCurrency(selMonth.uscite)}</div>
+        <div class="donut-legend" style="flex-direction:row; justify-content:center; gap:16px; margin-top:6px;">
+          <div class="legend-item"><span class="legend-swatch" style="background:#2c8a5f"></span><span class="legend-name">Entrate</span></div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#c8402a"></span><span class="legend-name">Uscite</span></div>
+        </div>
       </div>
     `;
+
+    wrap.querySelectorAll('.bar-group').forEach(g => {
+      g.addEventListener('click', () => {
+        state.selectedBarMonth = parseInt(g.dataset.idx, 10);
+        renderBarChart(allEntries);
+      });
+    });
   }
 
   /* =========================================================
@@ -1847,7 +2026,6 @@
     const lines = text.split('\n');
     const numRegex = /(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})/g;
 
-    // 1) Cerca prima una riga con "totale"/"tot" che contenga un importo
     for(const line of lines){
       if(/tot(ale)?\b/i.test(line)){
         const matches = line.match(numRegex);
@@ -1857,7 +2035,6 @@
         }
       }
     }
-    // 2) Fallback: prendi il numero più grande trovato in tutto il testo
     const allMatches = text.match(numRegex);
     if(allMatches && allMatches.length){
       const values = allMatches.map(parseAmount).filter(v => v !== null);
@@ -1867,7 +2044,6 @@
   }
 
   function parseAmount(str){
-    // normalizza "1.234,56" o "1,234.56" o "12,50" in numero JS
     let s = str.trim();
     const lastComma = s.lastIndexOf(',');
     const lastDot = s.lastIndexOf('.');
@@ -1907,6 +2083,8 @@
   }
 
   initStorage();
+  initTheme();
+  initOnboarding();
   renderAll();
 
   /* =========================================================
