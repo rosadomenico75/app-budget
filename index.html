@@ -806,6 +806,7 @@
     $$('.view').forEach(v => v.classList.add('hidden'));
     $('#view-' + view).classList.remove('hidden');
     $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    $('#fabAdd').classList.toggle('hidden', view !== 'movimenti');
     if(view === 'report') renderReport();
     if(view === 'tag') renderTags();
   }
