@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="App Budget">
+<title>App Budget</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon-192.svg">
+<style>
+  /* ---------- Variabili tema ---------- */
+  :root{
+    --bg:#f2f3f9;
+    --surface:#ffffff;
+    --surface-alt:#f8f9fd;
+    --border:#e7e8f2;
+    --text:#1c1b2e;
+    --text-muted:#6c6f8a;
+    --primary:#4f46e5;
+    --primary-dark:#4338ca;
+    --secondary:#8b5cf6;
+    --success:#16a34a;
+    --success-bg:#dcfce7;
+    --danger:#dc2626;
+    --danger-bg:#fee2e2;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --shadow:0 8px 24px rgba(30,27,75,0.10);
+    --shadow-sm:0 2px 8px rgba(30,27,75,0.08);
+    --safe-top:env(safe-area-inset-top, 0px);
+    --safe-bottom:env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1120;
+      --surface:#1b1d33;
+      --surface-alt:#20223a;
+      --border:#31344f;
+      --text:#f1f1fb;
+      --text-muted:#9497b8;
+      --success-bg:#123322;
+      --danger-bg:#3a1620;
+      --shadow:0 8px 24px rgba(0,0,0,0.35);
+      --shadow-sm:0 2px 8px rgba(0,0,0,0.3);
+    }
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    overscroll-behavior-y:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  input,textarea{-webkit-user-select:text; user-select:text;}
+  button{font-family:inherit;}
+  h1,h2,h3,p{margin:0;}
+  .hidden{display:none !important;}
+  ::-webkit-scrollbar{width:0;height:0;}
+
+  /* ---------- Layout generale ---------- */
+  #app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+
+  /* ---------- Header ---------- */
+  .app-header{
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    padding:calc(var(--safe-top) + 18px) 20px 56px;
+    color:#fff;
+    position:relative;
+  }
+  .app-header .top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .app-title{font-size:19px; font-weight:700; letter-spacing:.2px;}
+  .month-switch{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(255,255,255,0.18);
+    border-radius:999px;
+    padding:4px 6px;
+  }
+  .month-switch button{
+    width:30px;height:30px;
+    border:none;
+    background:rgba(255,255,255,0.22);
+    color:#fff;
+    border-radius:50%;
+    font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .month-switch button:active{background:rgba(255,255,255,0.35);}
+  .month-label{
+    font-size:13.5px;
+    font-weight:600;
+    min-width:96px;
+    text-align:center;
+    text-transform:capitalize;
+  }
+
+  .balance-card{
+    background:var(--surface);
+    color:var(--text);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    padding:18px 20px;
+    margin:16px 0 -40px;
+    position:relative;
+    z-index:2;
+  }
+  .balance-card .saldo-label{font-size:12.5px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.4px;}
+  .balance-card .saldo-value{font-size:30px; font-weight:800; margin-top:2px;}
+  .balance-card .saldo-value.negativo{color:var(--danger);}
+  .balance-card .saldo-value.positivo{color:var(--success);}
+  .mini-stats{display:flex; gap:10px; margin-top:14px;}
+  .mini-stat{
+    flex:1;
+    background:var(--surface-alt);
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+  }
+  .mini-stat .label{font-size:11.5px; color:var(--text-muted); font-weight:600; display:flex; align-items:center; gap:5px;}
+  .mini-stat .value{font-size:16px; font-weight:700; margin-top:3px;}
+  .mini-stat.entrate .value{color:var(--success);}
+  .mini-stat.uscite .value{color:var(--danger);}
+
+  /* ---------- Contenuto scrollabile ---------- */
+  .views{
+    flex:1;
+    padding:56px 16px 110px;
+  }
+  .view{display:flex; flex-direction:column; gap:14px;}
+
+  /* ---------- Lista movimenti ---------- */
+  .day-group{display:flex; flex-direction:column; gap:8px;}
+  .day-heading{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--text-muted);
+    text-transform:capitalize;
+    padding:2px 4px;
+  }
+  .entry-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface);
+    border-radius:var(--radius-md);
+    padding:12px 14px;
+    box-shadow:var(--shadow-sm);
+    cursor:pointer;
+  }
+  .entry-row:active{transform:scale(0.98);}
+  .tag-dot{
+    width:38px;height:38px;
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+    flex-shrink:0;
+    color:#fff;
+    font-weight:700;
+  }
+  .entry-info{flex:1; min-width:0;}
+  .entry-desc{font-size:14.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .entry-tag{font-size:12px; color:var(--text-muted); margin-top:1px;}
+  .entry-amount{font-size:15.5px; font-weight:700; flex-shrink:0;}
+  .entry-amount.entrata{color:var(--success);}
+  .entry-amount.uscita{color:var(--danger);}
+
+  .empty-state{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--text-muted);
+    font-size:14px;
+    line-height:1.5;
+  }
+  .empty-state .emoji{font-size:38px; display:block; margin-bottom:10px;}
+
+  /* ---------- Report ---------- */
+  .segmented{
+    display:flex;
+    background:var(--surface-alt);
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+  }
+  .segmented button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:9px 0;
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text-muted);
+    cursor:pointer;
+  }
+  .segmented button.active{background:var(--primary); color:#fff;}
+
+  .report-card{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm);
+    padding:18px;
+  }
+  .report-card h3{font-size:14px; margin-bottom:14px;}
+  .totals-row{display:flex; gap:10px;}
+  .totals-row .mini-stat{background:var(--surface-alt);}
+
+  .donut-wrap{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:center;}
+  .donut-legend{flex:1; min-width:140px; display:flex; flex-direction:column; gap:8px;}
+  .legend-item{display:flex; align-items:center; gap:8px; font-size:12.5px;}
+  .legend-swatch{width:10px;height:10px;border-radius:3px; flex-shrink:0;}
+  .legend-name{flex:1; color:var(--text);}
+  .legend-value{color:var(--text-muted); font-weight:600;}
+
+  .bar-chart-svg{width:100%; height:auto; overflow:visible;}
+
+  /* ---------- Tag view ---------- */
+  .tag-list{display:flex; flex-direction:column; gap:8px;}
+  .tag-row{
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface);
+    border-radius:var(--radius-md);
+    padding:12px 14px;
+    box-shadow:var(--shadow-sm);
+  }
+  .tag-color-dot{width:16px;height:16px;border-radius:5px; flex-shrink:0;}
+  .tag-name{flex:1; font-size:14.5px; font-weight:600;}
+  .icon-btn{
+    width:34px;height:34px;
+    border:none;
+    background:var(--surface-alt);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;
+    cursor:pointer;
+    color:var(--text-muted);
+  }
+  .icon-btn:active{background:var(--border);}
+  .icon-btn.danger{color:var(--danger);}
+  .add-tag-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--surface-alt);
+    border:2px dashed var(--border);
+    border-radius:var(--radius-md);
+    padding:14px;
+    color:var(--primary);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+
+  /* ---------- Nav inferiore ---------- */
+  .bottom-nav{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    max-width:520px;
+    margin:0 auto;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    display:flex;
+    padding:8px 8px calc(8px + var(--safe-bottom));
+    z-index:20;
+  }
+  .nav-btn{
+    flex:1;
+    position:relative;
+    border:none;
+    background:transparent;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:6px 0;
+    color:var(--text-muted);
+    font-size:11px;
+    font-weight:600;
+    cursor:pointer;
+    border-radius:12px;
+  }
+  .nav-btn .nav-icon{font-size:20px; position:relative;}
+  .nav-btn.active{color:var(--primary);}
+  .nav-badge{
+    position:absolute;
+    top:2px;
+    right:calc(50% - 20px);
+    min-width:16px;
+    height:16px;
+    padding:0 4px;
+    border-radius:999px;
+    background:var(--danger);
+    color:#fff;
+    font-size:9.5px;
+    font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1;
+  }
+
+  /* ---------- Banner promemoria ---------- */
+  .reminder-banner{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--danger-bg);
+    border:1px solid var(--danger);
+    border-radius:var(--radius-md);
+    padding:12px 14px;
+  }
+  .reminder-banner .reminder-icon{font-size:20px; flex-shrink:0;}
+  .reminder-banner .reminder-text{flex:1; font-size:12.5px; color:var(--text); line-height:1.35;}
+  .reminder-banner .reminder-text b{display:block; font-size:13.5px;}
+  .reminder-banner button{
+    border:none;
+    background:var(--danger);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    padding:9px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  .fab{
+    position:fixed;
+    right:calc(50% - 260px + 20px);
+    bottom:calc(74px + var(--safe-bottom));
+    width:58px;height:58px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:#fff;
+    border:none;
+    font-size:28px;
+    box-shadow:0 8px 20px rgba(79,70,229,0.4);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    z-index:21;
+  }
+  @media (max-width:559px){
+    .fab{right:20px;}
+  }
+  .fab:active{transform:scale(0.94);}
+
+  /* ---------- Bottom sheet ---------- */
+  .sheet-overlay{
+    position:fixed; inset:0;
+    background:rgba(15,17,32,0.5);
+    z-index:30;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .sheet-overlay.open{opacity:1; pointer-events:auto;}
+  .sheet{
+    background:var(--surface);
+    width:100%;
+    max-width:520px;
+    border-radius:22px 22px 0 0;
+    padding:10px 20px calc(20px + var(--safe-bottom));
+    max-height:88vh;
+    overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform .25s cubic-bezier(.2,.9,.3,1);
+  }
+  .sheet-overlay.open .sheet{transform:translateY(0);}
+  .sheet-handle{width:40px;height:4px; background:var(--border); border-radius:99px; margin:6px auto 14px;}
+  .sheet-title{font-size:16.5px; font-weight:700; margin-bottom:16px;}
+
+  .type-toggle{display:flex; background:var(--surface-alt); border-radius:14px; padding:4px; gap:4px; margin-bottom:16px;}
+  .type-toggle button{
+    flex:1; border:none; background:transparent; padding:12px 0; border-radius:11px;
+    font-size:14.5px; font-weight:700; color:var(--text-muted); cursor:pointer;
+  }
+  .type-toggle button.active.uscita{background:var(--danger-bg); color:var(--danger);}
+  .type-toggle button.active.entrata{background:var(--success-bg); color:var(--success);}
+
+  .amount-field{text-align:center; margin-bottom:18px;}
+  .amount-field input{
+    width:100%;
+    border:none; background:transparent;
+    font-size:44px; font-weight:800; text-align:center;
+    color:var(--text);
+    outline:none;
+  }
+  .amount-field .curr{font-size:22px; color:var(--text-muted); vertical-align:6px;}
+
+  .field-label{font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.3px; margin:14px 0 8px;}
+  .text-field{
+    width:100%;
+    border:1px solid var(--border);
+    background:var(--surface-alt);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    font-size:14.5px;
+    color:var(--text);
+    outline:none;
+  }
+  .date-field-row{display:flex; align-items:center; gap:10px;}
+  .date-field-row input{flex:1;}
+
+  .tag-chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .tag-chip{
+    padding:9px 14px;
+    border-radius:999px;
+    border:1.5px solid var(--border);
+    background:var(--surface-alt);
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .tag-chip .dot{width:9px;height:9px;border-radius:3px;}
+  .tag-chip.selected{border-color:transparent; color:#fff;}
+
+  .scan-btn{
+    width:100%;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--surface-alt);
+    border:1.5px dashed var(--primary);
+    color:var(--primary);
+    border-radius:var(--radius-sm);
+    padding:12px;
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+    margin:16px 0 4px;
+  }
+
+  .sheet-actions{display:flex; gap:10px; margin-top:20px;}
+  .btn{
+    flex:1;
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:14px;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff;}
+  .btn-secondary{background:var(--surface-alt); color:var(--text); border:1px solid var(--border);}
+  .btn-danger-outline{background:var(--danger-bg); color:var(--danger);}
+  .btn:active{transform:scale(0.97);}
+
+  .color-swatches{display:flex; flex-wrap:wrap; gap:10px;}
+  .swatch{
+    width:34px;height:34px;
+    border-radius:50%;
+    cursor:pointer;
+    border:3px solid transparent;
+  }
+  .swatch.selected{border-color:var(--text);}
+
+  /* ---------- Overlay OCR ---------- */
+  .scan-overlay{
+    position:fixed; inset:0;
+    background:rgba(15,17,32,0.75);
+    z-index:40;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff;
+    gap:16px;
+    text-align:center;
+    padding:20px;
+  }
+  .spinner{
+    width:44px;height:44px;
+    border-radius:50%;
+    border:4px solid rgba(255,255,255,0.25);
+    border-top-color:#fff;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .toast{
+    position:fixed;
+    bottom:calc(84px + var(--safe-bottom));
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#1c1b2e;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:600;
+    z-index:50;
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s ease;
+    max-width:90%;
+    text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="top-row">
+      <h1 class="app-title">App Budget</h1>
+      <div class="month-switch" id="monthSwitch">
+        <button id="prevMonthBtn" aria-label="Mese precedente">‹</button>
+        <span class="month-label" id="monthLabel">-</span>
+        <button id="nextMonthBtn" aria-label="Mese successivo">›</button>
+      </div>
+    </div>
+    <div class="balance-card">
+      <div class="saldo-label">Saldo del mese</div>
+      <div class="saldo-value" id="saldoValue">€ 0,00</div>
+      <div class="mini-stats">
+        <div class="mini-stat entrate">
+          <div class="label">↑ Entrate</div>
+          <div class="value" id="totEntrate">€ 0,00</div>
+        </div>
+        <div class="mini-stat uscite">
+          <div class="label">↓ Uscite</div>
+          <div class="value" id="totUscite">€ 0,00</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== CONTENUTO ===== -->
+  <main class="views">
+
+    <!-- Vista Movimenti -->
+    <section class="view" id="view-movimenti">
+      <div id="reminderBanner"></div>
+      <div id="entriesList"></div>
+    </section>
+
+    <!-- Vista Report -->
+    <section class="view hidden" id="view-report">
+      <div class="segmented" id="reportScope">
+        <button class="active" data-scope="mese">Questo mese</button>
+        <button data-scope="totale">Totale</button>
+      </div>
+
+      <div class="report-card">
+        <h3>Riepilogo</h3>
+        <div class="totals-row">
+          <div class="mini-stat entrate">
+            <div class="label">↑ Entrate</div>
+            <div class="value" id="repEntrate">€ 0,00</div>
+          </div>
+          <div class="mini-stat uscite">
+            <div class="label">↓ Uscite</div>
+            <div class="value" id="repUscite">€ 0,00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <h3>Uscite per categoria</h3>
+        <div class="donut-wrap" id="donutWrap"></div>
+      </div>
+
+      <div class="report-card">
+        <h3>Andamento ultimi 6 mesi</h3>
+        <div id="barChartWrap"></div>
+      </div>
+    </section>
+
+    <!-- Vista Tag -->
+    <section class="view hidden" id="view-tag">
+      <div class="tag-list" id="tagList"></div>
+      <button class="add-tag-btn" id="addTagBtn">+ Nuovo tag</button>
+    </section>
+
+  </main>
+
+  <!-- ===== NAV INFERIORE ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="movimenti">
+      <span class="nav-icon">📋<span class="nav-badge hidden" id="navBadge">0</span></span>Movimenti
+    </button>
+    <button class="nav-btn" data-view="report">
+      <span class="nav-icon">📊</span>Report
+    </button>
+    <button class="nav-btn" data-view="tag">
+      <span class="nav-icon">🏷️</span>Tag
+    </button>
+  </nav>
+
+  <button class="fab" id="fabAdd" aria-label="Aggiungi movimento">+</button>
+
+  <!-- ===== SHEET: aggiungi/modifica movimento ===== -->
+  <div class="sheet-overlay" id="entrySheetOverlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="entrySheetTitle">Nuovo movimento</div>
+
+      <div class="type-toggle" id="typeToggle">
+        <button type="button" class="uscita active" data-type="uscita">Uscita</button>
+        <button type="button" class="entrata" data-type="entrata">Entrata</button>
+      </div>
+
+      <div class="amount-field">
+        <span class="curr">€</span>
+        <input type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00" id="amountInput">
+      </div>
+
+      <button type="button" class="scan-btn" id="scanReceiptBtn">📷 Scansiona scontrino</button>
+      <input type="file" accept="image/*" capture="environment" id="receiptFileInput" class="hidden">
+
+      <div class="field-label">Data</div>
+      <div class="date-field-row">
+        <input type="date" class="text-field" id="dateInput">
+      </div>
+
+      <div class="field-label">Descrizione (facoltativa)</div>
+      <input type="text" class="text-field" id="descInput" placeholder="Es. Spesa supermercato">
+
+      <div class="field-label">Tag</div>
+      <div class="tag-chips" id="tagChips"></div>
+
+      <div class="sheet-actions">
+        <button class="btn btn-secondary" id="cancelEntryBtn">Annulla</button>
+        <button class="btn btn-primary" id="saveEntryBtn">Salva</button>
+      </div>
+      <div class="sheet-actions hidden" id="deleteEntryRow">
+        <button class="btn btn-danger-outline" id="deleteEntryBtn">Elimina movimento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: aggiungi/modifica tag ===== -->
+  <div class="sheet-overlay" id="tagSheetOverlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="tagSheetTitle">Nuovo tag</div>
+
+      <div class="field-label">Nome</div>
+      <input type="text" class="text-field" id="tagNameInput" placeholder="Es. Regali" maxlength="20">
+
+      <div class="field-label">Colore</div>
+      <div class="color-swatches" id="colorSwatches"></div>
+
+      <div class="sheet-actions">
+        <button class="btn btn-secondary" id="cancelTagBtn">Annulla</button>
+        <button class="btn btn-primary" id="saveTagBtn">Salva</button>
+      </div>
+      <div class="sheet-actions hidden" id="deleteTagRow">
+        <button class="btn btn-danger-outline" id="deleteTagBtn">Elimina tag</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Overlay scansione OCR ===== -->
+  <div class="scan-overlay hidden" id="scanOverlay">
+    <div class="spinner"></div>
+    <p id="scanOverlayText">Riconoscimento in corso...</p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* =========================================================
+     STORAGE
+     I dati vengono salvati in localStorage con chiavi fisse.
+     Il campo "v" (versione) e' pensato per future migrazioni:
+     se in futuro cambi la struttura dei dati, puoi controllare
+     STORAGE_VERSION e convertire i vecchi dati senza perderli.
+     ========================================================= */
+  const STORAGE_VERSION = 1;
+  const KEY_ENTRIES = 'budgetapp_entries';
+  const KEY_TAGS = 'budgetapp_tags';
+  const KEY_META = 'budgetapp_meta';
+
+  const COLOR_PALETTE = ['#f59e0b','#3b82f6','#22c55e','#6366f1','#ec4899','#ef4444','#14b8a6','#a855f7','#84cc16','#f97316'];
+
+  const DEFAULT_TAGS = [
+    {id:'casa',   name:'Casa',   color:'#f59e0b', isDefault:true},
+    {id:'auto',   name:'Auto',   color:'#3b82f6', isDefault:true},
+    {id:'cibo',   name:'Cibo',   color:'#22c55e', isDefault:true},
+    {id:'lavoro', name:'Lavoro', color:'#6366f1', isDefault:true},
+    {id:'svago',  name:'Svago',  color:'#ec4899', isDefault:true},
+    {id:'salute', name:'Salute', color:'#ef4444', isDefault:true}
+  ];
+
+  function loadJSON(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      return parsed === null || parsed === undefined ? fallback : parsed;
+    }catch(e){
+      console.warn('Errore lettura storage', key, e);
+      return fallback;
+    }
+  }
+  function saveJSON(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function initStorage(){
+    if(!localStorage.getItem(KEY_META)){
+      saveJSON(KEY_META, {v: STORAGE_VERSION});
+    }
+    if(!localStorage.getItem(KEY_TAGS)){
+      saveJSON(KEY_TAGS, DEFAULT_TAGS);
+    }
+    if(!localStorage.getItem(KEY_ENTRIES)){
+      saveJSON(KEY_ENTRIES, []);
+    }
+  }
+
+  function getTags(){ return loadJSON(KEY_TAGS, DEFAULT_TAGS); }
+  function setTags(tags){ saveJSON(KEY_TAGS, tags); }
+  function getEntries(){ return loadJSON(KEY_ENTRIES, []); }
+  function setEntries(entries){ saveJSON(KEY_ENTRIES, entries); }
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  /* =========================================================
+     UTILITY DI FORMATTAZIONE
+     ========================================================= */
+  const currencyFmt = new Intl.NumberFormat('it-IT', {style:'currency', currency:'EUR'});
+  function formatCurrency(n){ return currencyFmt.format(n || 0); }
+
+  function toDateKey(d){
+    // YYYY-MM-DD locale, senza problemi di fuso orario
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function monthKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+  const dayHeadingFmt = new Intl.DateTimeFormat('it-IT', {weekday:'long', day:'numeric', month:'long'});
+  const monthLabelFmt = new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'});
+  const monthShortFmt = new Intl.DateTimeFormat('it-IT', {month:'short'});
+
+  /* =========================================================
+     STATO APPLICAZIONE
+     ========================================================= */
+  const state = {
+    currentView: 'movimenti',
+    currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    reportScope: 'mese',
+    editingEntryId: null,
+    editingTagId: null,
+    entryType: 'uscita',
+    selectedTagId: null,
+    tagColorSelected: COLOR_PALETTE[0],
+    classifyMode: false,
+    classifyQueue: []
+  };
+
+  /* =========================================================
+     RIFERIMENTI DOM
+     ========================================================= */
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  const monthLabel = $('#monthLabel');
+  const saldoValue = $('#saldoValue');
+  const totEntrate = $('#totEntrate');
+  const totUscite = $('#totUscite');
+  const entriesList = $('#entriesList');
+  const tagList = $('#tagList');
+  const tagChips = $('#tagChips');
+  const toastEl = $('#toast');
+
+  /* =========================================================
+     TOAST
+     ========================================================= */
+  let toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  /* =========================================================
+     NAVIGAZIONE VISTE
+     ========================================================= */
+  function switchView(view){
+    state.currentView = view;
+    $$('.view').forEach(v => v.classList.add('hidden'));
+    $('#view-' + view).classList.remove('hidden');
+    $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    if(view === 'report') renderReport();
+    if(view === 'tag') renderTags();
+  }
+  $$('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+
+  /* =========================================================
+     CAMBIO MESE
+     ========================================================= */
+  function changeMonth(delta){
+    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + delta, 1);
+    renderAll();
+  }
+  $('#prevMonthBtn').addEventListener('click', () => changeMonth(-1));
+  $('#nextMonthBtn').addEventListener('click', () => changeMonth(1));
+
+  /* =========================================================
+     RENDER: HEADER / SALDO
+     ========================================================= */
+  function entriesOfMonth(monthDate){
+    const mk = monthKey(monthDate);
+    return getEntries().filter(e => e.date.slice(0,7) === mk);
+  }
+
+  function computeTotals(entries){
+    let entrate = 0, uscite = 0;
+    entries.forEach(e => {
+      if(e.type === 'entrata') entrate += e.amount; else uscite += e.amount;
+    });
+    return {entrate, uscite, saldo: entrate - uscite};
+  }
+
+  function renderHeader(){
+    monthLabel.textContent = monthLabelFmt.format(state.currentMonth);
+    const totals = computeTotals(entriesOfMonth(state.currentMonth));
+    saldoValue.textContent = formatCurrency(totals.saldo);
+    saldoValue.className = 'saldo-value ' + (totals.saldo > 0 ? 'positivo' : totals.saldo < 0 ? 'negativo' : '');
+    totEntrate.textContent = formatCurrency(totals.entrate);
+    totUscite.textContent = formatCurrency(totals.uscite);
+  }
+
+  /* =========================================================
+     RENDER: LISTA MOVIMENTI
+     ========================================================= */
+  function renderEntries(){
+    const entries = entriesOfMonth(state.currentMonth).slice().sort((a,b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+    entriesList.innerHTML = '';
+
+    if(entries.length === 0){
+      entriesList.innerHTML = `
+        <div class="empty-state">
+          <span class="emoji">🧾</span>
+          Nessun movimento questo mese.<br>Tocca "+" per aggiungere la prima spesa o entrata.
+        </div>`;
+      return;
+    }
+
+    const tagsById = Object.fromEntries(getTags().map(t => [t.id, t]));
+    const groups = {};
+    entries.forEach(e => {
+      if(!groups[e.date]) groups[e.date] = [];
+      groups[e.date].push(e);
+    });
+
+    Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(dateKey => {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'day-group';
+
+      const heading = document.createElement('div');
+      heading.className = 'day-heading';
+      heading.textContent = dayHeadingFmt.format(new Date(dateKey + 'T00:00:00'));
+      dayEl.appendChild(heading);
+
+      groups[dateKey].forEach(entry => {
+        const tag = tagsById[entry.tagId];
+        const row = document.createElement('div');
+        row.className = 'entry-row';
+        row.innerHTML = `
+          <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${tag ? '' : '?'}</div>
+          <div class="entry-info">
+            <div class="entry-desc">${escapeHtml(entry.description) || (tag ? tag.name : 'Senza tag')}</div>
+            <div class="entry-tag">${tag ? tag.name : 'Senza tag'}</div>
+          </div>
+          <div class="entry-amount ${entry.type}">${entry.type === 'uscita' ? '-' : '+'} ${formatCurrency(entry.amount)}</div>
+        `;
+        row.addEventListener('click', () => openEntrySheet(entry.id));
+        dayEl.appendChild(row);
+      });
+
+      entriesList.appendChild(dayEl);
+    });
+  }
+
+  /* =========================================================
+     PROMEMORIA: movimenti senza tag da classificare
+     ========================================================= */
+  function getUntaggedEntries(){
+    return getEntries().filter(e => !e.tagId);
+  }
+
+  function renderReminderBanner(){
+    const untagged = getUntaggedEntries();
+    const count = untagged.length;
+    const banner = $('#reminderBanner');
+    const navBadge = $('#navBadge');
+
+    if(count === 0){
+      banner.innerHTML = '';
+      navBadge.classList.add('hidden');
+      return;
+    }
+
+    navBadge.textContent = count > 9 ? '9+' : String(count);
+    navBadge.classList.remove('hidden');
+
+    banner.innerHTML = `
+      <div class="reminder-banner">
+        <span class="reminder-icon">⚠️</span>
+        <span class="reminder-text"><b>${count} moviment${count === 1 ? 'o' : 'i'} senza tag</b>Classificali per avere report precisi.</span>
+        <button type="button" id="classifyNowBtn">Classifica ora</button>
+      </div>`;
+    $('#classifyNowBtn').addEventListener('click', startClassifyFlow);
+  }
+
+  function startClassifyFlow(){
+    const queue = getUntaggedEntries().map(e => e.id);
+    if(queue.length === 0) return;
+    state.classifyMode = true;
+    state.classifyQueue = queue;
+    openEntrySheet(queue[0]);
+  }
+
+  function advanceClassifyFlow(){
+    state.classifyQueue = state.classifyQueue.filter(id => getEntries().some(e => e.id === id && !e.tagId));
+    if(state.classifyQueue.length > 0){
+      setTimeout(() => openEntrySheet(state.classifyQueue[0]), 300);
+    }else{
+      state.classifyMode = false;
+      showToast('Tutti i movimenti sono stati classificati!');
+    }
+  }
+
+  function escapeHtml(str){
+    if(!str) return '';
+    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* =========================================================
+     RENDER: TAG (vista gestione)
+     ========================================================= */
+  function renderTags(){
+    const tags = getTags();
+    tagList.innerHTML = '';
+    tags.forEach(tag => {
+      const row = document.createElement('div');
+      row.className = 'tag-row';
+      row.innerHTML = `
+        <div class="tag-color-dot" style="background:${tag.color}"></div>
+        <div class="tag-name">${escapeHtml(tag.name)}</div>
+        <button class="icon-btn" data-action="edit" aria-label="Modifica tag">✏️</button>
+        <button class="icon-btn danger" data-action="delete" aria-label="Elimina tag">🗑️</button>
+      `;
+      row.querySelector('[data-action="edit"]').addEventListener('click', () => openTagSheet(tag.id));
+      row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteTag(tag.id));
+      tagList.appendChild(row);
+    });
+  }
+
+  /* =========================================================
+     RENDER: CHIPS TAG (dentro sheet movimento)
+     ========================================================= */
+  function renderTagChips(){
+    const tags = getTags();
+    tagChips.innerHTML = '';
+    tags.forEach(tag => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tag-chip' + (state.selectedTagId === tag.id ? ' selected' : '');
+      chip.style.background = state.selectedTagId === tag.id ? tag.color : '';
+      chip.innerHTML = `<span class="dot" style="background:${tag.color}"></span>${escapeHtml(tag.name)}`;
+      chip.addEventListener('click', () => {
+        state.selectedTagId = (state.selectedTagId === tag.id) ? null : tag.id;
+        renderTagChips();
+      });
+      tagChips.appendChild(chip);
+    });
+  }
+
+  /* =========================================================
+     SHEET MOVIMENTO: apertura / chiusura / salvataggio
+     ========================================================= */
+  const entrySheetOverlay = $('#entrySheetOverlay');
+  const entrySheetTitle = $('#entrySheetTitle');
+  const amountInput = $('#amountInput');
+  const dateInput = $('#dateInput');
+  const descInput = $('#descInput');
+  const deleteEntryRow = $('#deleteEntryRow');
+
+  function openEntrySheet(entryId){
+    state.editingEntryId = entryId || null;
+    const entries = getEntries();
+    const entry = entryId ? entries.find(e => e.id === entryId) : null;
+
+    state.entryType = entry ? entry.type : 'uscita';
+    state.selectedTagId = entry ? entry.tagId : null;
+
+    entrySheetTitle.textContent = entry ? 'Modifica movimento' : 'Nuovo movimento';
+    amountInput.value = entry ? entry.amount : '';
+    dateInput.value = entry ? entry.date : toDateKey(new Date());
+    descInput.value = entry ? (entry.description || '') : '';
+    deleteEntryRow.classList.toggle('hidden', !entry);
+
+    updateTypeToggleUI();
+    renderTagChips();
+    entrySheetOverlay.classList.add('open');
+    setTimeout(() => amountInput.focus(), 250);
+  }
+
+  function closeEntrySheet(){
+    entrySheetOverlay.classList.remove('open');
+    state.editingEntryId = null;
+  }
+
+  function updateTypeToggleUI(){
+    $$('#typeToggle button').forEach(b => {
+      b.classList.toggle('active', b.dataset.type === state.entryType);
+    });
+  }
+  $('#typeToggle').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    state.entryType = btn.dataset.type;
+    updateTypeToggleUI();
+  });
+
+  $('#cancelEntryBtn').addEventListener('click', () => { state.classifyMode = false; closeEntrySheet(); });
+  entrySheetOverlay.addEventListener('click', (ev) => { if(ev.target === entrySheetOverlay){ state.classifyMode = false; closeEntrySheet(); } });
+
+  $('#saveEntryBtn').addEventListener('click', () => {
+    const amount = parseFloat((amountInput.value || '').toString().replace(',', '.'));
+    if(!amount || amount <= 0){
+      showToast('Inserisci un importo valido');
+      amountInput.focus();
+      return;
+    }
+    if(!dateInput.value){
+      showToast('Seleziona una data');
+      return;
+    }
+
+    const entries = getEntries();
+    const payload = {
+      type: state.entryType,
+      amount: Math.round(amount * 100) / 100,
+      date: dateInput.value,
+      description: descInput.value.trim(),
+      tagId: state.selectedTagId
+    };
+
+    if(state.editingEntryId){
+      const idx = entries.findIndex(e => e.id === state.editingEntryId);
+      if(idx !== -1) entries[idx] = {...entries[idx], ...payload};
+    }else{
+      entries.push({id: uid(), createdAt: Date.now(), ...payload});
+    }
+    setEntries(entries);
+    const wasClassifying = state.classifyMode;
+    closeEntrySheet();
+    renderAll();
+    if(wasClassifying){
+      advanceClassifyFlow();
+    }else{
+      showToast('Movimento salvato');
+    }
+  });
+
+  $('#deleteEntryBtn').addEventListener('click', () => {
+    if(!state.editingEntryId) return;
+    if(!confirm('Eliminare questo movimento?')) return;
+    setEntries(getEntries().filter(e => e.id !== state.editingEntryId));
+    const wasClassifying = state.classifyMode;
+    closeEntrySheet();
+    renderAll();
+    if(wasClassifying){
+      advanceClassifyFlow();
+    }else{
+      showToast('Movimento eliminato');
+    }
+  });
+
+  $('#fabAdd').addEventListener('click', () => openEntrySheet(null));
+
+  /* =========================================================
+     SHEET TAG: apertura / chiusura / salvataggio
+     ========================================================= */
+  const tagSheetOverlay = $('#tagSheetOverlay');
+  const tagSheetTitle = $('#tagSheetTitle');
+  const tagNameInput = $('#tagNameInput');
+  const colorSwatches = $('#colorSwatches');
+  const deleteTagRow = $('#deleteTagRow');
+
+  function renderColorSwatches(){
+    colorSwatches.innerHTML = '';
+    COLOR_PALETTE.forEach(color => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (state.tagColorSelected === color ? ' selected' : '');
+      sw.style.background = color;
+      sw.addEventListener('click', () => {
+        state.tagColorSelected = color;
+        renderColorSwatches();
+      });
+      colorSwatches.appendChild(sw);
+    });
+  }
+
+  function openTagSheet(tagId){
+    state.editingTagId = tagId || null;
+    const tag = tagId ? getTags().find(t => t.id === tagId) : null;
+    tagSheetTitle.textContent = tag ? 'Modifica tag' : 'Nuovo tag';
+    tagNameInput.value = tag ? tag.name : '';
+    state.tagColorSelected = tag ? tag.color : COLOR_PALETTE[Math.floor(Math.random()*COLOR_PALETTE.length)];
+    deleteTagRow.classList.toggle('hidden', !tag);
+    renderColorSwatches();
+    tagSheetOverlay.classList.add('open');
+    setTimeout(() => tagNameInput.focus(), 250);
+  }
+  function closeTagSheet(){
+    tagSheetOverlay.classList.remove('open');
+    state.editingTagId = null;
+  }
+
+  $('#addTagBtn').addEventListener('click', () => openTagSheet(null));
+  $('#cancelTagBtn').addEventListener('click', closeTagSheet);
+  tagSheetOverlay.addEventListener('click', (ev) => { if(ev.target === tagSheetOverlay) closeTagSheet(); });
+
+  $('#saveTagBtn').addEventListener('click', () => {
+    const name = tagNameInput.value.trim();
+    if(!name){
+      showToast('Inserisci un nome per il tag');
+      tagNameInput.focus();
+      return;
+    }
+    const tags = getTags();
+    if(state.editingTagId){
+      const idx = tags.findIndex(t => t.id === state.editingTagId);
+      if(idx !== -1){ tags[idx].name = name; tags[idx].color = state.tagColorSelected; }
+    }else{
+      tags.push({id: uid(), name, color: state.tagColorSelected, isDefault:false});
+    }
+    setTags(tags);
+    closeTagSheet();
+    renderTags();
+    showToast('Tag salvato');
+  });
+
+  function deleteTag(tagId){
+    if(!confirm('Eliminare questo tag? I movimenti associati resteranno "Senza tag".')) return;
+    setTags(getTags().filter(t => t.id !== tagId));
+    const entries = getEntries().map(e => e.tagId === tagId ? {...e, tagId:null} : e);
+    setEntries(entries);
+    renderTags();
+    renderAll();
+    showToast('Tag eliminato');
+  }
+
+  $('#deleteTagBtn').addEventListener('click', () => {
+    if(state.editingTagId) deleteTag(state.editingTagId);
+    closeTagSheet();
+  });
+
+  /* =========================================================
+     REPORT: scope (mese / totale) + grafici
+     ========================================================= */
+  $('#reportScope').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    state.reportScope = btn.dataset.scope;
+    $$('#reportScope button').forEach(b => b.classList.toggle('active', b === btn));
+    renderReport();
+  });
+
+  function renderReport(){
+    const allEntries = getEntries();
+    const scopedEntries = state.reportScope === 'mese' ? entriesOfMonth(state.currentMonth) : allEntries;
+    const totals = computeTotals(scopedEntries);
+
+    $('#repEntrate').textContent = formatCurrency(totals.entrate);
+    $('#repUscite').textContent = formatCurrency(totals.uscite);
+
+    renderDonutChart(scopedEntries);
+    renderBarChart(allEntries);
+  }
+
+  function renderDonutChart(entries){
+    const wrap = $('#donutWrap');
+    const tags = getTags();
+    const tagsById = Object.fromEntries(tags.map(t => [t.id, t]));
+
+    const byTag = {};
+    entries.filter(e => e.type === 'uscita').forEach(e => {
+      const key = e.tagId || '__none__';
+      byTag[key] = (byTag[key] || 0) + e.amount;
+    });
+
+    const segments = Object.keys(byTag).map(tagId => ({
+      label: tagId === '__none__' ? 'Senza tag' : (tagsById[tagId] ? tagsById[tagId].name : 'Senza tag'),
+      color: tagId === '__none__' ? '#9497b8' : (tagsById[tagId] ? tagsById[tagId].color : '#9497b8'),
+      value: byTag[tagId]
+    })).sort((a,b) => b.value - a.value);
+
+    const total = segments.reduce((s,x) => s + x.value, 0);
+
+    if(total === 0){
+      wrap.innerHTML = '<div class="empty-state" style="padding:20px 0;">Nessuna uscita da mostrare.</div>';
+      return;
+    }
+
+    const size = 160, radius = 58, stroke = 26, cx = size/2, cy = size/2;
+    const circumference = 2 * Math.PI * radius;
+    let offsetAcc = 0;
+
+    let circles = '';
+    segments.forEach(seg => {
+      const fraction = seg.value / total;
+      const dash = fraction * circumference;
+      circles += `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${seg.color}" stroke-width="${stroke}"
+        stroke-dasharray="${dash} ${circumference - dash}" stroke-dashoffset="${-offsetAcc}" transform="rotate(-90 ${cx} ${cy})" />`;
+      offsetAcc += dash;
+    });
+
+    const svg = `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        ${circles}
+        <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text)">${formatCurrency(total)}</text>
+        <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" fill="var(--text-muted)">totale uscite</text>
+      </svg>`;
+
+    const legend = segments.map(seg => `
+      <div class="legend-item">
+        <span class="legend-swatch" style="background:${seg.color}"></span>
+        <span class="legend-name">${escapeHtml(seg.label)}</span>
+        <span class="legend-value">${formatCurrency(seg.value)}</span>
+      </div>`).join('');
+
+    wrap.innerHTML = `${svg}<div class="donut-legend">${legend}</div>`;
+  }
+
+  function renderBarChart(allEntries){
+    const wrap = $('#barChartWrap');
+    const months = [];
+    for(let i = 5; i >= 0; i--){
+      const d = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - i, 1);
+      months.push({key: monthKey(d), label: monthShortFmt.format(d).replace('.', ''), entrate:0, uscite:0});
+    }
+    const byKey = Object.fromEntries(months.map(m => [m.key, m]));
+    allEntries.forEach(e => {
+      const mk = e.date.slice(0,7);
+      if(byKey[mk]){
+        if(e.type === 'entrata') byKey[mk].entrate += e.amount; else byKey[mk].uscite += e.amount;
+      }
+    });
+
+    const max = Math.max(1, ...months.map(m => Math.max(m.entrate, m.uscite)));
+    const chartH = 130, barW = 14, gapInGroup = 4, groupW = 56;
+    const width = groupW * months.length;
+
+    let bars = '';
+    months.forEach((m, i) => {
+      const groupX = i * groupW;
+      const hE = (m.entrate / max) * chartH;
+      const hU = (m.uscite / max) * chartH;
+      const xE = groupX + groupW/2 - gapInGroup/2 - barW;
+      const xU = groupX + groupW/2 + gapInGroup/2;
+      bars += `
+        <rect x="${xE}" y="${chartH - hE}" width="${barW}" height="${hE}" rx="3" fill="var(--success,#16a34a)" />
+        <rect x="${xU}" y="${chartH - hU}" width="${barW}" height="${hU}" rx="3" fill="var(--danger,#dc2626)" />
+        <text x="${groupX + groupW/2}" y="${chartH + 16}" text-anchor="middle" font-size="10" fill="#6c6f8a" text-transform="capitalize">${m.label}</text>
+      `;
+    });
+
+    wrap.innerHTML = `
+      <svg class="bar-chart-svg" viewBox="0 0 ${width} ${chartH + 24}">
+        ${bars}
+      </svg>
+      <div class="donut-legend" style="flex-direction:row; justify-content:center; gap:16px; margin-top:10px;">
+        <div class="legend-item"><span class="legend-swatch" style="background:#16a34a"></span><span class="legend-name">Entrate</span></div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#dc2626"></span><span class="legend-name">Uscite</span></div>
+      </div>
+    `;
+  }
+
+  /* =========================================================
+     OCR SCONTRINI (Tesseract.js caricato on-demand da CDN)
+     ========================================================= */
+  let tesseractLoadPromise = null;
+  function loadTesseract(){
+    if(window.Tesseract) return Promise.resolve();
+    if(tesseractLoadPromise) return tesseractLoadPromise;
+    tesseractLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Impossibile caricare la libreria OCR. Serve una connessione internet la prima volta.'));
+      document.head.appendChild(script);
+    });
+    return tesseractLoadPromise;
+  }
+
+  const scanOverlay = $('#scanOverlay');
+  const scanOverlayText = $('#scanOverlayText');
+  const receiptFileInput = $('#receiptFileInput');
+
+  $('#scanReceiptBtn').addEventListener('click', () => receiptFileInput.click());
+
+  receiptFileInput.addEventListener('change', async () => {
+    const file = receiptFileInput.files[0];
+    receiptFileInput.value = '';
+    if(!file) return;
+
+    scanOverlay.classList.remove('hidden');
+    scanOverlayText.textContent = 'Carico il motore OCR...';
+
+    try{
+      await loadTesseract();
+      scanOverlayText.textContent = 'Riconoscimento in corso...';
+      const result = await window.Tesseract.recognize(file, 'eng');
+      const text = result && result.data && result.data.text ? result.data.text : '';
+      applyOcrResult(text);
+    }catch(err){
+      console.error(err);
+      showToast('OCR non riuscito: ' + err.message);
+    }finally{
+      scanOverlay.classList.add('hidden');
+    }
+  });
+
+  function applyOcrResult(text){
+    const amount = extractAmountFromText(text);
+    const date = extractDateFromText(text);
+    let found = [];
+    if(amount !== null){ amountInput.value = amount; found.push('importo'); }
+    if(date){ dateInput.value = date; found.push('data'); }
+    showToast(found.length ? `Rilevati: ${found.join(' e ')}. Controlla prima di salvare.` : 'Nessun dato riconosciuto, inserisci manualmente.');
+  }
+
+  function extractAmountFromText(text){
+    const lines = text.split('\n');
+    const numRegex = /(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})/g;
+
+    // 1) Cerca prima una riga con "totale"/"tot" che contenga un importo
+    for(const line of lines){
+      if(/tot(ale)?\b/i.test(line)){
+        const matches = line.match(numRegex);
+        if(matches && matches.length){
+          const val = parseAmount(matches[matches.length - 1]);
+          if(val !== null) return val;
+        }
+      }
+    }
+    // 2) Fallback: prendi il numero più grande trovato in tutto il testo
+    const allMatches = text.match(numRegex);
+    if(allMatches && allMatches.length){
+      const values = allMatches.map(parseAmount).filter(v => v !== null);
+      if(values.length) return Math.max(...values);
+    }
+    return null;
+  }
+
+  function parseAmount(str){
+    // normalizza "1.234,56" o "1,234.56" o "12,50" in numero JS
+    let s = str.trim();
+    const lastComma = s.lastIndexOf(',');
+    const lastDot = s.lastIndexOf('.');
+    if(lastComma > lastDot){
+      s = s.replace(/\./g, '').replace(',', '.');
+    }else{
+      s = s.replace(/,/g, '');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? null : Math.round(n * 100) / 100;
+  }
+
+  function extractDateFromText(text){
+    const match = text.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+    if(!match) return null;
+    let [, d, m, y] = match;
+    d = parseInt(d,10); m = parseInt(m,10); y = parseInt(y,10);
+    if(y < 100) y += 2000;
+    if(m < 1 || m > 12 || d < 1 || d > 31) return null;
+    const date = new Date(y, m-1, d);
+    if(isNaN(date.getTime())) return null;
+    return toDateKey(date);
+  }
+
+  /* =========================================================
+     RENDER GLOBALE + AVVIO
+     ========================================================= */
+  function renderAll(){
+    renderHeader();
+    renderEntries();
+    renderReminderBanner();
+    if(state.currentView === 'report') renderReport();
+    if(state.currentView === 'tag') renderTags();
+  }
+
+  initStorage();
+  renderAll();
+
+  /* =========================================================
+     SERVICE WORKER
+     ========================================================= */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch(err => {
+        console.warn('Registrazione service worker fallita:', err);
+      });
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
