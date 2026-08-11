@@ -511,6 +511,40 @@
     text-align:center;
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .backup-hint{font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:14px;}
+
+  .update-banner{
+    position:fixed;
+    top:0; left:0; right:0;
+    max-width:520px;
+    margin:0 auto;
+    z-index:60;
+    background:#1c1b2e;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:calc(var(--safe-top) + 10px) 16px 10px;
+    font-size:14px;
+    font-weight:600;
+    text-align:center;
+    transform:translateY(-100%);
+    transition:transform .25s ease;
+  }
+  .update-banner.show{transform:translateY(0);}
+  .update-banner button{
+    border:none;
+    background:var(--primary);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
 </style>
 </head>
 <body>
@@ -548,6 +582,13 @@
     <!-- Vista Movimenti -->
     <section class="view" id="view-movimenti">
       <div id="reminderBanner"></div>
+      <input type="text" class="text-field" id="searchInput" placeholder="🔍 Cerca per descrizione...">
+      <div class="segmented" id="typeFilter">
+        <button class="active" data-type-filter="all">Tutti</button>
+        <button data-type-filter="entrata">Entrate</button>
+        <button data-type-filter="uscita">Uscite</button>
+      </div>
+      <div class="tag-chips" id="tagFilterChips"></div>
       <div id="entriesList"></div>
     </section>
 
@@ -583,10 +624,27 @@
       </div>
     </section>
 
+    <!-- Vista Ricorrenti -->
+    <section class="view hidden" id="view-ricorrenti">
+      <div id="recurringPendingBanner"></div>
+      <div class="tag-list" id="recurringList"></div>
+      <button class="add-tag-btn" id="addRecurringBtn">+ Nuova spesa ricorrente</button>
+    </section>
+
     <!-- Vista Tag -->
     <section class="view hidden" id="view-tag">
       <div class="tag-list" id="tagList"></div>
       <button class="add-tag-btn" id="addTagBtn">+ Nuovo tag</button>
+
+      <div class="report-card">
+        <h3>Backup dati</h3>
+        <p class="backup-hint">Salva una copia di sicurezza dei tuoi dati o ripristinali da un backup precedente.</p>
+        <div class="sheet-actions" style="margin-top:0;">
+          <button class="btn btn-secondary" id="exportBackupBtn">⬇️ Esporta</button>
+          <button class="btn btn-secondary" id="importBackupBtn">⬆️ Importa</button>
+        </div>
+        <input type="file" accept="application/json" id="importBackupInput" class="hidden">
+      </div>
     </section>
 
   </main>
@@ -598,6 +656,9 @@
     </button>
     <button class="nav-btn" data-view="report">
       <span class="nav-icon">📊</span>Report
+    </button>
+    <button class="nav-btn" data-view="ricorrenti">
+      <span class="nav-icon">🔁<span class="nav-badge hidden" id="recurringNavBadge">0</span></span>Ricorrenti
     </button>
     <button class="nav-btn" data-view="tag">
       <span class="nav-icon">🏷️</span>Tag
@@ -643,6 +704,9 @@
       <div class="sheet-actions hidden" id="deleteEntryRow">
         <button class="btn btn-danger-outline" id="deleteEntryBtn">Elimina movimento</button>
       </div>
+      <div class="sheet-actions hidden" id="skipRecurringRow">
+        <button class="btn btn-secondary" id="skipRecurringBtn">Salta questo mese</button>
+      </div>
     </div>
   </div>
 
@@ -668,6 +732,41 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: spesa ricorrente ===== -->
+  <div class="sheet-overlay" id="recurringSheetOverlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="recurringSheetTitle">Nuova spesa ricorrente</div>
+
+      <div class="type-toggle" id="recurringTypeToggle">
+        <button type="button" class="uscita active" data-type="uscita">Uscita</button>
+        <button type="button" class="entrata" data-type="entrata">Entrata</button>
+      </div>
+
+      <div class="amount-field">
+        <span class="curr">€</span>
+        <input type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00" id="recurringAmountInput">
+      </div>
+
+      <div class="field-label">Descrizione</div>
+      <input type="text" class="text-field" id="recurringDescInput" placeholder="Es. Affitto">
+
+      <div class="field-label">Giorno del mese</div>
+      <input type="number" class="text-field" id="recurringDayInput" min="1" max="28" value="1">
+
+      <div class="field-label">Tag</div>
+      <div class="tag-chips" id="recurringTagChips"></div>
+
+      <div class="sheet-actions">
+        <button class="btn btn-secondary" id="cancelRecurringBtn">Annulla</button>
+        <button class="btn btn-primary" id="saveRecurringBtn">Salva</button>
+      </div>
+      <div class="sheet-actions hidden" id="deleteRecurringRow">
+        <button class="btn btn-danger-outline" id="deleteRecurringBtn">Elimina spesa ricorrente</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== Overlay scansione OCR ===== -->
   <div class="scan-overlay hidden" id="scanOverlay">
     <div class="spinner"></div>
@@ -675,6 +774,11 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <div class="update-banner" id="updateBanner">
+    <span>🔄 Nuova versione disponibile</span>
+    <button type="button" id="updateNowBtn">Aggiorna</button>
+  </div>
 
 </div>
 
@@ -693,6 +797,7 @@
   const KEY_ENTRIES = 'budgetapp_entries';
   const KEY_TAGS = 'budgetapp_tags';
   const KEY_META = 'budgetapp_meta';
+  const KEY_RECURRING = 'budgetapp_recurring';
 
   const COLOR_PALETTE = ['#f59e0b','#3b82f6','#22c55e','#6366f1','#ec4899','#ef4444','#14b8a6','#a855f7','#84cc16','#f97316'];
 
@@ -730,12 +835,17 @@
     if(!localStorage.getItem(KEY_ENTRIES)){
       saveJSON(KEY_ENTRIES, []);
     }
+    if(!localStorage.getItem(KEY_RECURRING)){
+      saveJSON(KEY_RECURRING, []);
+    }
   }
 
   function getTags(){ return loadJSON(KEY_TAGS, DEFAULT_TAGS); }
   function setTags(tags){ saveJSON(KEY_TAGS, tags); }
   function getEntries(){ return loadJSON(KEY_ENTRIES, []); }
   function setEntries(entries){ saveJSON(KEY_ENTRIES, entries); }
+  function getRecurring(){ return loadJSON(KEY_RECURRING, []); }
+  function setRecurring(list){ saveJSON(KEY_RECURRING, list); }
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 
@@ -769,7 +879,16 @@
     selectedTagId: null,
     tagColorSelected: COLOR_PALETTE[0],
     classifyMode: false,
-    classifyQueue: []
+    classifyQueue: [],
+    searchQuery: '',
+    typeFilter: 'all',
+    tagFilterId: 'all',
+    recurringMode: false,
+    recurringQueue: [],
+    currentRecurringId: null,
+    editingRecurringId: null,
+    recurringEntryType: 'uscita',
+    recurringSelectedTagId: null
   };
 
   /* =========================================================
@@ -786,6 +905,9 @@
   const tagList = $('#tagList');
   const tagChips = $('#tagChips');
   const toastEl = $('#toast');
+  const searchInput = $('#searchInput');
+  const tagFilterChips = $('#tagFilterChips');
+  const recurringList = $('#recurringList');
 
   /* =========================================================
      TOAST
@@ -809,6 +931,7 @@
     $('#fabAdd').classList.toggle('hidden', view !== 'movimenti');
     if(view === 'report') renderReport();
     if(view === 'tag') renderTags();
+    if(view === 'ricorrenti') renderRecurringList();
   }
   $$('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
 
@@ -848,14 +971,72 @@
   }
 
   /* =========================================================
+     RICERCA E FILTRI
+     ========================================================= */
+  function applyFilters(entries){
+    let result = entries;
+    if(state.searchQuery.trim()){
+      const q = state.searchQuery.trim().toLowerCase();
+      result = result.filter(e => (e.description || '').toLowerCase().includes(q));
+    }
+    if(state.typeFilter !== 'all'){
+      result = result.filter(e => e.type === state.typeFilter);
+    }
+    if(state.tagFilterId === 'none'){
+      result = result.filter(e => !e.tagId);
+    }else if(state.tagFilterId !== 'all'){
+      result = result.filter(e => e.tagId === state.tagFilterId);
+    }
+    return result;
+  }
+
+  function renderTagFilterChips(){
+    const tags = getTags();
+    const options = [{id:'all', name:'Tutti', color:null}, ...tags, {id:'none', name:'Senza tag', color:'#9497b8'}];
+    tagFilterChips.innerHTML = '';
+    options.forEach(opt => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      const active = state.tagFilterId === opt.id;
+      chip.className = 'tag-chip' + (active ? ' selected' : '');
+      chip.style.background = active ? (opt.color || 'var(--primary)') : '';
+      chip.innerHTML = opt.color ? `<span class="dot" style="background:${opt.color}"></span>${escapeHtml(opt.name)}` : escapeHtml(opt.name);
+      chip.addEventListener('click', () => {
+        state.tagFilterId = opt.id;
+        renderTagFilterChips();
+        renderEntries();
+      });
+      tagFilterChips.appendChild(chip);
+    });
+  }
+
+  searchInput.addEventListener('input', () => {
+    state.searchQuery = searchInput.value;
+    renderEntries();
+  });
+  $('#typeFilter').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    state.typeFilter = btn.dataset.typeFilter;
+    $$('#typeFilter button').forEach(b => b.classList.toggle('active', b === btn));
+    renderEntries();
+  });
+
+  /* =========================================================
      RENDER: LISTA MOVIMENTI
      ========================================================= */
   function renderEntries(){
-    const entries = entriesOfMonth(state.currentMonth).slice().sort((a,b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+    const monthEntries = entriesOfMonth(state.currentMonth);
+    const entries = applyFilters(monthEntries).slice().sort((a,b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
     entriesList.innerHTML = '';
 
     if(entries.length === 0){
-      entriesList.innerHTML = `
+      const filtersActive = state.searchQuery.trim() || state.typeFilter !== 'all' || state.tagFilterId !== 'all';
+      entriesList.innerHTML = filtersActive ? `
+        <div class="empty-state">
+          <span class="emoji">🔍</span>
+          Nessun movimento corrisponde ai filtri.
+        </div>` : `
         <div class="empty-state">
           <span class="emoji">🧾</span>
           Nessun movimento questo mese.<br>Tocca "+" per aggiungere la prima spesa o entrata.
@@ -1017,6 +1198,7 @@
     dateInput.value = entry ? entry.date : toDateKey(new Date());
     descInput.value = entry ? (entry.description || '') : '';
     deleteEntryRow.classList.toggle('hidden', !entry);
+    $('#skipRecurringRow').classList.add('hidden');
 
     updateTypeToggleUI();
     renderTagChips();
@@ -1041,8 +1223,8 @@
     updateTypeToggleUI();
   });
 
-  $('#cancelEntryBtn').addEventListener('click', () => { state.classifyMode = false; closeEntrySheet(); });
-  entrySheetOverlay.addEventListener('click', (ev) => { if(ev.target === entrySheetOverlay){ state.classifyMode = false; closeEntrySheet(); } });
+  $('#cancelEntryBtn').addEventListener('click', () => { state.classifyMode = false; state.recurringMode = false; closeEntrySheet(); });
+  entrySheetOverlay.addEventListener('click', (ev) => { if(ev.target === entrySheetOverlay){ state.classifyMode = false; state.recurringMode = false; closeEntrySheet(); } });
 
   $('#saveEntryBtn').addEventListener('click', () => {
     const amount = parseFloat((amountInput.value || '').toString().replace(',', '.'));
@@ -1073,11 +1255,18 @@
     }
     setEntries(entries);
     const wasClassifying = state.classifyMode;
+    const wasRecurring = state.recurringMode;
+    const recurringIdJustHandled = state.currentRecurringId;
     closeEntrySheet();
-    renderAll();
-    if(wasClassifying){
+    if(wasRecurring){
+      markRecurringHandled(recurringIdJustHandled);
+      renderAll();
+      advanceRecurringReview();
+    }else if(wasClassifying){
+      renderAll();
       advanceClassifyFlow();
     }else{
+      renderAll();
       showToast('Movimento salvato');
     }
   });
@@ -1094,6 +1283,14 @@
     }else{
       showToast('Movimento eliminato');
     }
+  });
+
+  $('#skipRecurringBtn').addEventListener('click', () => {
+    if(!state.currentRecurringId) return;
+    markRecurringHandled(state.currentRecurringId);
+    closeEntrySheet();
+    renderAll();
+    advanceRecurringReview();
   });
 
   $('#fabAdd').addEventListener('click', () => openEntrySheet(null));
@@ -1174,6 +1371,301 @@
   $('#deleteTagBtn').addEventListener('click', () => {
     if(state.editingTagId) deleteTag(state.editingTagId);
     closeTagSheet();
+  });
+
+  /* =========================================================
+     SPESE RICORRENTI: gestione modelli (vista Ricorrenti)
+     ========================================================= */
+  const recurringSheetOverlay = $('#recurringSheetOverlay');
+  const recurringSheetTitle = $('#recurringSheetTitle');
+  const recurringAmountInput = $('#recurringAmountInput');
+  const recurringDescInput = $('#recurringDescInput');
+  const recurringDayInput = $('#recurringDayInput');
+  const recurringTagChips = $('#recurringTagChips');
+  const deleteRecurringRow = $('#deleteRecurringRow');
+
+  function renderRecurringList(){
+    const list = getRecurring();
+    const tagsById = Object.fromEntries(getTags().map(t => [t.id, t]));
+    recurringList.innerHTML = '';
+
+    if(list.length === 0){
+      recurringList.innerHTML = `
+        <div class="empty-state">
+          <span class="emoji">🔁</span>
+          Nessuna spesa ricorrente.<br>Aggiungi affitto, abbonamenti o altre spese fisse mensili.
+        </div>`;
+      return;
+    }
+
+    list.forEach(rec => {
+      const tag = tagsById[rec.tagId];
+      const row = document.createElement('div');
+      row.className = 'entry-row';
+      row.style.cursor = 'default';
+      row.innerHTML = `
+        <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">🔁</div>
+        <div class="entry-info">
+          <div class="entry-desc">${escapeHtml(rec.description)}</div>
+          <div class="entry-tag">${tag ? tag.name : 'Senza tag'} · Giorno ${rec.dayOfMonth} · ${rec.type === 'uscita' ? '-' : '+'} ${formatCurrency(rec.amount)}</div>
+        </div>
+        <button class="icon-btn" data-action="edit" aria-label="Modifica spesa ricorrente">✏️</button>
+      `;
+      row.querySelector('[data-action="edit"]').addEventListener('click', () => openRecurringSheet(rec.id));
+      recurringList.appendChild(row);
+    });
+  }
+
+  function renderRecurringTagChips(){
+    const tags = getTags();
+    recurringTagChips.innerHTML = '';
+    tags.forEach(tag => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tag-chip' + (state.recurringSelectedTagId === tag.id ? ' selected' : '');
+      chip.style.background = state.recurringSelectedTagId === tag.id ? tag.color : '';
+      chip.innerHTML = `<span class="dot" style="background:${tag.color}"></span>${escapeHtml(tag.name)}`;
+      chip.addEventListener('click', () => {
+        state.recurringSelectedTagId = (state.recurringSelectedTagId === tag.id) ? null : tag.id;
+        renderRecurringTagChips();
+      });
+      recurringTagChips.appendChild(chip);
+    });
+  }
+
+  function updateRecurringTypeToggleUI(){
+    $$('#recurringTypeToggle button').forEach(b => {
+      b.classList.toggle('active', b.dataset.type === state.recurringEntryType);
+    });
+  }
+  $('#recurringTypeToggle').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    state.recurringEntryType = btn.dataset.type;
+    updateRecurringTypeToggleUI();
+  });
+
+  function openRecurringSheet(recurringId){
+    state.editingRecurringId = recurringId || null;
+    const rec = recurringId ? getRecurring().find(r => r.id === recurringId) : null;
+
+    state.recurringEntryType = rec ? rec.type : 'uscita';
+    state.recurringSelectedTagId = rec ? rec.tagId : null;
+
+    recurringSheetTitle.textContent = rec ? 'Modifica spesa ricorrente' : 'Nuova spesa ricorrente';
+    recurringAmountInput.value = rec ? rec.amount : '';
+    recurringDescInput.value = rec ? rec.description : '';
+    recurringDayInput.value = rec ? rec.dayOfMonth : 1;
+    deleteRecurringRow.classList.toggle('hidden', !rec);
+
+    updateRecurringTypeToggleUI();
+    renderRecurringTagChips();
+    recurringSheetOverlay.classList.add('open');
+    setTimeout(() => recurringAmountInput.focus(), 250);
+  }
+  function closeRecurringSheet(){
+    recurringSheetOverlay.classList.remove('open');
+    state.editingRecurringId = null;
+  }
+
+  $('#addRecurringBtn').addEventListener('click', () => openRecurringSheet(null));
+  $('#cancelRecurringBtn').addEventListener('click', closeRecurringSheet);
+  recurringSheetOverlay.addEventListener('click', (ev) => { if(ev.target === recurringSheetOverlay) closeRecurringSheet(); });
+
+  $('#saveRecurringBtn').addEventListener('click', () => {
+    const amount = parseFloat((recurringAmountInput.value || '').toString().replace(',', '.'));
+    if(!amount || amount <= 0){
+      showToast('Inserisci un importo valido');
+      recurringAmountInput.focus();
+      return;
+    }
+    const description = recurringDescInput.value.trim();
+    if(!description){
+      showToast('Inserisci una descrizione');
+      recurringDescInput.focus();
+      return;
+    }
+    let day = parseInt(recurringDayInput.value, 10);
+    if(!day || day < 1) day = 1;
+    if(day > 28) day = 28;
+
+    const list = getRecurring();
+    const payload = {
+      type: state.recurringEntryType,
+      amount: Math.round(amount * 100) / 100,
+      description,
+      dayOfMonth: day,
+      tagId: state.recurringSelectedTagId
+    };
+
+    if(state.editingRecurringId){
+      const idx = list.findIndex(r => r.id === state.editingRecurringId);
+      if(idx !== -1) list[idx] = {...list[idx], ...payload};
+    }else{
+      list.push({id: uid(), createdAt: Date.now(), lastHandledMonth: null, ...payload});
+    }
+    setRecurring(list);
+    closeRecurringSheet();
+    renderRecurringList();
+    renderRecurringPendingUI();
+    showToast('Spesa ricorrente salvata');
+  });
+
+  $('#deleteRecurringBtn').addEventListener('click', () => {
+    if(!state.editingRecurringId) return;
+    if(!confirm('Eliminare questa spesa ricorrente? I movimenti già confermati non verranno toccati.')) return;
+    setRecurring(getRecurring().filter(r => r.id !== state.editingRecurringId));
+    closeRecurringSheet();
+    renderRecurringList();
+    renderRecurringPendingUI();
+    showToast('Spesa ricorrente eliminata');
+  });
+
+  /* =========================================================
+     SPESE RICORRENTI: revisione/conferma mensile
+     ========================================================= */
+  function getPendingRecurringTemplates(){
+    const mk = monthKey(new Date());
+    const today = new Date().getDate();
+    return getRecurring().filter(r => r.lastHandledMonth !== mk && today >= r.dayOfMonth);
+  }
+
+  function renderRecurringPendingUI(){
+    const pending = getPendingRecurringTemplates();
+    const count = pending.length;
+    const banner = $('#recurringPendingBanner');
+    const navBadge = $('#recurringNavBadge');
+
+    if(count === 0){
+      banner.innerHTML = '';
+      navBadge.classList.add('hidden');
+      return;
+    }
+
+    navBadge.textContent = count > 9 ? '9+' : String(count);
+    navBadge.classList.remove('hidden');
+
+    banner.innerHTML = `
+      <div class="reminder-banner">
+        <span class="reminder-icon">📅</span>
+        <span class="reminder-text"><b>${count} spes${count === 1 ? 'a ricorrente' : 'e ricorrenti'} da confermare</b>Controlla importo e data prima di aggiungerle.</span>
+        <button type="button" id="reviewRecurringBtn">Rivedi</button>
+      </div>`;
+    $('#reviewRecurringBtn').addEventListener('click', startRecurringReview);
+  }
+
+  function markRecurringHandled(recurringId){
+    if(!recurringId) return;
+    const list = getRecurring();
+    const idx = list.findIndex(r => r.id === recurringId);
+    if(idx !== -1){
+      list[idx].lastHandledMonth = monthKey(new Date());
+      setRecurring(list);
+    }
+  }
+
+  function openRecurringConfirmSheet(recurringId){
+    const rec = getRecurring().find(r => r.id === recurringId);
+    if(!rec){ advanceRecurringReview(); return; }
+
+    state.editingEntryId = null;
+    state.currentRecurringId = recurringId;
+    state.entryType = rec.type;
+    state.selectedTagId = rec.tagId;
+
+    const now = new Date();
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const day = Math.min(rec.dayOfMonth, lastDayOfMonth);
+
+    entrySheetTitle.textContent = 'Conferma: ' + rec.description;
+    amountInput.value = rec.amount;
+    dateInput.value = toDateKey(new Date(now.getFullYear(), now.getMonth(), day));
+    descInput.value = rec.description;
+    deleteEntryRow.classList.add('hidden');
+    $('#skipRecurringRow').classList.remove('hidden');
+
+    updateTypeToggleUI();
+    renderTagChips();
+    entrySheetOverlay.classList.add('open');
+  }
+
+  function startRecurringReview(){
+    const queue = getPendingRecurringTemplates().map(r => r.id);
+    if(queue.length === 0) return;
+    state.recurringMode = true;
+    state.recurringQueue = queue;
+    openRecurringConfirmSheet(queue[0]);
+  }
+
+  function advanceRecurringReview(){
+    const mk = monthKey(new Date());
+    state.recurringQueue = state.recurringQueue.filter(id => {
+      const rec = getRecurring().find(r => r.id === id);
+      return rec && rec.lastHandledMonth !== mk;
+    });
+    if(state.recurringQueue.length > 0){
+      setTimeout(() => openRecurringConfirmSheet(state.recurringQueue[0]), 300);
+    }else{
+      state.recurringMode = false;
+      state.currentRecurringId = null;
+      showToast('Spese ricorrenti aggiornate!');
+    }
+  }
+
+  /* =========================================================
+     BACKUP: esporta / importa dati
+     ========================================================= */
+  $('#exportBackupBtn').addEventListener('click', () => {
+    const backup = {
+      app: 'app-budget',
+      version: STORAGE_VERSION,
+      exportedAt: new Date().toISOString(),
+      entries: getEntries(),
+      tags: getTags(),
+      recurring: getRecurring()
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `app-budget-backup-${toDateKey(new Date())}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Backup esportato');
+  });
+
+  $('#importBackupBtn').addEventListener('click', () => $('#importBackupInput').click());
+
+  $('#importBackupInput').addEventListener('change', () => {
+    const file = $('#importBackupInput').files[0];
+    $('#importBackupInput').value = '';
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try{
+        data = JSON.parse(reader.result);
+      }catch(e){
+        showToast('File di backup non valido');
+        return;
+      }
+      if(!Array.isArray(data.entries) || !Array.isArray(data.tags)){
+        showToast('File di backup non valido');
+        return;
+      }
+      const count = data.entries.length;
+      if(!confirm(`Importare ${count} movimenti e ${data.tags.length} tag? I dati attuali sul telefono verranno sostituiti.`)) return;
+
+      setEntries(data.entries);
+      setTags(data.tags);
+      setRecurring(Array.isArray(data.recurring) ? data.recurring : []);
+      renderAll();
+      showToast('Backup importato');
+    };
+    reader.readAsText(file);
   });
 
   /* =========================================================
@@ -1405,22 +1897,67 @@
      ========================================================= */
   function renderAll(){
     renderHeader();
+    renderTagFilterChips();
     renderEntries();
     renderReminderBanner();
+    renderRecurringPendingUI();
     if(state.currentView === 'report') renderReport();
     if(state.currentView === 'tag') renderTags();
+    if(state.currentView === 'ricorrenti') renderRecurringList();
   }
 
   initStorage();
   renderAll();
 
   /* =========================================================
-     SERVICE WORKER
+     SERVICE WORKER + BANNER AGGIORNAMENTO
+     Non attiviamo subito il nuovo service worker: resta "in attesa"
+     finche' l'utente non tocca "Aggiorna" nel banner, cosi' non gli
+     cambiamo la app sotto le dita mentre la sta usando. I dati in
+     localStorage non vengono mai toccati da questo meccanismo.
      ========================================================= */
+  const updateBanner = $('#updateBanner');
+  const updateNowBtn = $('#updateNowBtn');
+  let waitingWorker = null;
+
+  function showUpdateBanner(worker){
+    waitingWorker = worker;
+    updateBanner.classList.add('show');
+  }
+
+  updateNowBtn.addEventListener('click', () => {
+    if(!waitingWorker) return;
+    waitingWorker.postMessage('SKIP_WAITING');
+    updateBanner.classList.remove('show');
+  });
+
   if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js').catch(err => {
+      navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+        if(reg.waiting && reg.active){
+          showUpdateBanner(reg.waiting);
+        }
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if(!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
+              showUpdateBanner(newWorker);
+            }
+          });
+        });
+        document.addEventListener('visibilitychange', () => {
+          if(document.visibilityState === 'visible') reg.update().catch(() => {});
+        });
+      }).catch(err => {
         console.warn('Registrazione service worker fallita:', err);
+      });
+
+      let refreshingAfterUpdate = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if(refreshingAfterUpdate) return;
+        refreshingAfterUpdate = true;
+        window.location.reload();
       });
     });
   }

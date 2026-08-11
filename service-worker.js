@@ -3,7 +3,7 @@
 // cosi' il service worker scarica la nuova versione invece di servire quella vecchia in cache.
 // I dati dell'utente (localStorage) NON sono toccati da questo file: aggiornare l'app
 // non cancella mai i movimenti/tag gia' inseriti.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const PRECACHE_NAME = `budget-app-precache-${CACHE_VERSION}`;
 const RUNTIME_CACHE_NAME = `budget-app-runtime-${CACHE_VERSION}`;
 
@@ -19,8 +19,15 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(PRECACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
   );
+});
+
+// Il nuovo service worker resta "in attesa" finche' la pagina non chiede
+// esplicitamente di attivarlo (l'utente tocca "Aggiorna" nel banner).
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
