@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="omelette-print-source" content="v1786457608579245 index.html">
+<title>Resoconto spese — App Budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  doc-page:not(:defined){visibility:hidden}
+  body{ font-family:"Manrope",sans-serif; color:#241d15; }
+  h1,h2,h3{ font-family:"Space Grotesk",sans-serif; margin:0; }
+  .doc-header{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #dd8a3f; padding-bottom:14px; margin-bottom:22px; }
+  .doc-header h1{ font-size:26px; font-weight:700; }
+  .doc-header .period{ font-size:15px; color:#6c6355; font-weight:600; margin-top:4px; }
+  .doc-header .generated{ font-size:11.5px; color:#948b7c; text-align:right; }
+  .summary-row{ display:flex; gap:14px; margin-bottom:26px; }
+  .summary-box{ flex:1; border:1px solid #e6ddd0; border-radius:10px; padding:14px 16px; break-inside:avoid; }
+  .summary-box .lbl{ font-size:11.5px; text-transform:uppercase; letter-spacing:.4px; color:#948b7c; font-weight:700; }
+  .summary-box .val{ font-family:"Space Grotesk",sans-serif; font-size:22px; font-weight:700; margin-top:4px; }
+  .summary-box.entrate .val{ color:#2c8a5f; }
+  .summary-box.uscite .val{ color:#c8402a; }
+  .summary-box.saldo .val{ color:#241d15; }
+  h2.section-title{ font-size:16px; font-weight:700; margin:28px 0 10px; padding-bottom:6px; border-bottom:1px solid #e6ddd0; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.3px; color:#948b7c; font-weight:700; padding:6px 8px; border-bottom:1px solid #e6ddd0; }
+  tbody td{ padding:7px 8px; border-bottom:1px solid #f1ece3; vertical-align:middle; }
+  tbody tr{ break-inside:avoid; }
+  td.num, th.num{ text-align:right; font-family:"Space Grotesk",sans-serif; font-variant-numeric:tabular-nums; }
+  .swatch{ width:9px; height:9px; border-radius:3px; display:inline-block; margin-right:7px; vertical-align:middle; }
+  .amt-entrata{ color:#2c8a5f; font-weight:700; }
+  .amt-uscita{ color:#c8402a; font-weight:700; }
+  .empty-note{ font-size:13px; color:#948b7c; padding:14px 0; }
+  .footer-note{ margin-top:30px; font-size:11px; color:#948b7c; text-align:center; }
+</style>
+</head>
+<body>
+
+<doc-page margin="0.75in" size="a4">
+  <div class="doc-header">
+    <div>
+      <h1>Resoconto spese</h1>
+      <div class="period" id="periodLabel">—</div>
+    </div>
+    <div class="generated" id="generatedLabel"></div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-box entrate">
+      <div class="lbl">Entrate</div>
+      <div class="val" id="sumEntrate">€ 0,00</div>
+    </div>
+    <div class="summary-box uscite">
+      <div class="lbl">Uscite</div>
+      <div class="val" id="sumUscite">€ 0,00</div>
+    </div>
+    <div class="summary-box saldo">
+      <div class="lbl">Saldo</div>
+      <div class="val" id="sumSaldo">€ 0,00</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Uscite per categoria</h2>
+  <div id="categoryTableWrap"></div>
+
+  <h2 class="section-title">Movimenti</h2>
+  <div id="movementsTableWrap"></div>
+
+  <div class="footer-note">Generato da App Budget</div>
+</doc-page>
+
+<script src="./doc-page.js"></script>
+<script>
+(function(){
+  'use strict';
+  function loadJSON(key, fallback){
+    try{ const raw = localStorage.getItem(key); if(!raw) return fallback; const p = JSON.parse(raw); return p == null ? fallback : p; }
+    catch(e){ return fallback; }
+  }
+  const entries = loadJSON('budgetapp_entries', []);
+  const tags = loadJSON('budgetapp_tags', []);
+  const tagsById = Object.fromEntries(tags.map(t => [t.id, t]));
+
+  const currencyFmt = new Intl.NumberFormat('it-IT', {style:'currency', currency:'EUR'});
+  function fmt(n){ return currencyFmt.format(n || 0); }
+  function esc(str){ if(!str) return ''; return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  const scope = localStorage.getItem('budgetapp_print_scope') || 'mese';
+  const monthKeyParam = localStorage.getItem('budgetapp_print_month');
+  const now = monthKeyParam ? new Date(monthKeyParam + '-01T00:00:00') : new Date();
+  const monthLabelFmt = new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'});
+  const mk = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  const scoped = scope === 'totale' ? entries : entries.filter(e => e.date.slice(0,7) === mk);
+  document.getElementById('periodLabel').textContent = scope === 'totale' ? 'Tutto il periodo registrato' : monthLabelFmt.format(now);
+  document.getElementById('generatedLabel').textContent = 'Generato il ' + new Intl.DateTimeFormat('it-IT', {day:'numeric', month:'long', year:'numeric'}).format(new Date());
+
+  let entrate = 0, uscite = 0;
+  scoped.forEach(e => { if(e.type === 'entrata') entrate += e.amount; else uscite += e.amount; });
+  document.getElementById('sumEntrate').textContent = fmt(entrate);
+  document.getElementById('sumUscite').textContent = fmt(uscite);
+  const saldo = entrate - uscite;
+  const saldoEl = document.getElementById('sumSaldo');
+  saldoEl.textContent = fmt(saldo);
+  saldoEl.style.color = saldo < 0 ? '#c8402a' : saldo > 0 ? '#2c8a5f' : '#241d15';
+
+  const byTag = {};
+  scoped.filter(e => e.type === 'uscita').forEach(e => {
+    const key = e.tagId || '__none__';
+    byTag[key] = (byTag[key] || 0) + e.amount;
+  });
+  const catRows = Object.keys(byTag).map(tagId => ({
+    label: tagId === '__none__' ? 'Senza tag' : (tagsById[tagId] ? tagsById[tagId].name : 'Senza tag'),
+    color: tagId === '__none__' ? '#9497b8' : (tagsById[tagId] ? tagsById[tagId].color : '#9497b8'),
+    value: byTag[tagId]
+  })).sort((a,b) => b.value - a.value);
+  const catTotal = catRows.reduce((s,x) => s + x.value, 0);
+
+  const catWrap = document.getElementById('categoryTableWrap');
+  if(catRows.length === 0){
+    catWrap.innerHTML = '<div class="empty-note">Nessuna uscita da mostrare in questo periodo.</div>';
+  }else{
+    catWrap.innerHTML = `
+      <table>
+        <thead><tr><th>Categoria</th><th class="num">Importo</th><th class="num">%</th></tr></thead>
+        <tbody>
+          ${catRows.map(r => `<tr>
+            <td><span class="swatch" style="background:${r.color}"></span>${esc(r.label)}</td>
+            <td class="num">${fmt(r.value)}</td>
+            <td class="num">${catTotal ? Math.round(r.value / catTotal * 100) : 0}%</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  const sortedEntries = scoped.slice().sort((a,b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt);
+  const dateFmt = new Intl.DateTimeFormat('it-IT', {day:'2-digit', month:'2-digit', year:'numeric'});
+  const movWrap = document.getElementById('movementsTableWrap');
+  if(sortedEntries.length === 0){
+    movWrap.innerHTML = '<div class="empty-note">Nessun movimento in questo periodo.</div>';
+  }else{
+    movWrap.innerHTML = `
+      <table>
+        <thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th class="num">Importo</th></tr></thead>
+        <tbody>
+          ${sortedEntries.map(e => {
+            const tag = tagsById[e.tagId];
+            const desc = esc(e.description) || (tag ? tag.name : 'Senza tag');
+            return `<tr>
+              <td>${dateFmt.format(new Date(e.date + 'T00:00:00'))}</td>
+              <td>${desc}</td>
+              <td>${tag ? esc(tag.name) : 'Senza tag'}</td>
+              <td class="num ${e.type === 'entrata' ? 'amt-entrata' : 'amt-uscita'}">${e.type === 'entrata' ? '+' : '-'} ${fmt(e.amount)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+})();
+</script>
+</body>
+</html>

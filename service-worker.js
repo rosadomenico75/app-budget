@@ -3,6 +3,8 @@ const RUNTIME_CACHE_NAME = 'app-budget-runtime-v1';
 const APP_SHELL = [
   './',
   './index.html',
+  './index-print.html',
+  './doc-page.js',
   './manifest.json',
   './icon-192.svg',
   './icon-512.svg'
