@@ -1,5 +1,5 @@
-const CACHE_NAME = 'app-budget-v1';
-const RUNTIME_CACHE_NAME = 'app-budget-runtime-v1';
+const CACHE_NAME = 'app-budget-v2';
+const RUNTIME_CACHE_NAME = 'app-budget-runtime-v2';
 const APP_SHELL = [
   './',
   './index.html',

@@ -92,9 +92,21 @@
   const now = monthKeyParam ? new Date(monthKeyParam + '-01T00:00:00') : new Date();
   const monthLabelFmt = new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'});
   const mk = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const yk = String(now.getFullYear());
 
-  const scoped = scope === 'totale' ? entries : entries.filter(e => e.date.slice(0,7) === mk);
-  document.getElementById('periodLabel').textContent = scope === 'totale' ? 'Tutto il periodo registrato' : monthLabelFmt.format(now);
+  let scoped, periodLabel;
+  if(scope === 'totale'){
+    scoped = entries;
+    periodLabel = 'Tutto il periodo registrato';
+  }else if(scope === 'anno'){
+    scoped = entries.filter(e => e.date.slice(0,4) === yk);
+    periodLabel = yk;
+  }else{
+    scoped = entries.filter(e => e.date.slice(0,7) === mk);
+    periodLabel = monthLabelFmt.format(now);
+  }
+
+  document.getElementById('periodLabel').textContent = periodLabel;
   document.getElementById('generatedLabel').textContent = 'Generato il ' + new Intl.DateTimeFormat('it-IT', {day:'numeric', month:'long', year:'numeric'}).format(new Date());
 
   let entrate = 0, uscite = 0;

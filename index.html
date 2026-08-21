@@ -277,6 +277,15 @@
 
   .bar-chart-svg{width:100%; height:auto; overflow:visible;}
 
+  .percent-list{display:flex; flex-direction:column; gap:14px;}
+  .percent-row-head{display:flex; align-items:center; gap:8px; font-size:14px; margin-bottom:6px;}
+  .percent-row-head .legend-swatch{width:10px;height:10px;border-radius:3px; flex-shrink:0;}
+  .percent-row-head .percent-name{flex:1; color:var(--text);}
+  .percent-row-head .percent-pct{font-weight:700; color:var(--text); font-variant-numeric:tabular-nums;}
+  .percent-row-head .percent-value{color:var(--text-muted); font-size:12.5px; font-variant-numeric:tabular-nums;}
+  .percent-bar-track{background:var(--surface-alt); border-radius:999px; height:8px; overflow:hidden;}
+  .percent-bar-fill{height:100%; border-radius:999px;}
+
   /* ---------- Tag view ---------- */
   .tag-list{display:flex; flex-direction:column; gap:8px;}
   .tag-row{
@@ -715,6 +724,7 @@
     <section class="view hidden" id="view-report">
       <div class="segmented" id="reportScope">
         <button class="active" data-scope="mese">Questo mese</button>
+        <button data-scope="anno">Quest'anno</button>
         <button data-scope="totale">Totale</button>
       </div>
       <button class="add-tag-btn" id="exportReportPdfBtn" style="border-style:solid; border-color:var(--border); color:var(--primary-dark);"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="17" x2="15" y2="17"/></svg>Esporta PDF</button>
@@ -741,6 +751,11 @@
       <div class="report-card">
         <h3>Andamento ultimi 6 mesi</h3>
         <div id="barChartWrap"></div>
+      </div>
+
+      <div class="report-card">
+        <h3>Percentuali di spesa</h3>
+        <div id="percentWrap"></div>
       </div>
     </section>
 
@@ -868,8 +883,38 @@
       <div class="field-label">Descrizione</div>
       <input type="text" class="text-field" id="recurringDescInput" placeholder="Es. Affitto">
 
-      <div class="field-label">Giorno del mese</div>
-      <input type="number" class="text-field" id="recurringDayInput" min="1" max="28" value="1">
+      <div class="field-label">Frequenza</div>
+      <select class="text-field" id="recurringFrequencySelect">
+        <option value="1">Mensile</option>
+        <option value="2">Bimestrale (ogni 2 mesi)</option>
+        <option value="3">Trimestrale (ogni 3 mesi)</option>
+        <option value="6">Semestrale (ogni 6 mesi)</option>
+        <option value="12">Annuale</option>
+      </select>
+
+      <div class="date-field-row">
+        <div style="flex:1">
+          <div class="field-label">Giorno del mese</div>
+          <input type="number" class="text-field" id="recurringDayInput" min="1" max="28" value="1">
+        </div>
+        <div style="flex:1" class="hidden" id="recurringMonthField">
+          <div class="field-label">Mese</div>
+          <select class="text-field" id="recurringMonthSelect">
+            <option value="0">Gennaio</option>
+            <option value="1">Febbraio</option>
+            <option value="2">Marzo</option>
+            <option value="3">Aprile</option>
+            <option value="4">Maggio</option>
+            <option value="5">Giugno</option>
+            <option value="6">Luglio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Settembre</option>
+            <option value="9">Ottobre</option>
+            <option value="10">Novembre</option>
+            <option value="11">Dicembre</option>
+          </select>
+        </div>
+      </div>
 
       <div class="field-label">Tag</div>
       <div class="tag-chips" id="recurringTagChips"></div>
@@ -1022,6 +1067,9 @@
   }
   function monthKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
+  const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const FREQUENCY_LABELS = {1:'Mensile', 2:'Bimestrale', 3:'Trimestrale', 6:'Semestrale', 12:'Annuale'};
+
   const dayHeadingFmt = new Intl.DateTimeFormat('it-IT', {weekday:'long', day:'numeric', month:'long'});
   const monthLabelFmt = new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'});
   const monthShortFmt = new Intl.DateTimeFormat('it-IT', {month:'short'});
@@ -1156,6 +1204,11 @@
   function entriesOfMonth(monthDate){
     const mk = monthKey(monthDate);
     return getEntries().filter(e => e.date.slice(0,7) === mk);
+  }
+
+  function entriesOfYear(yearDate){
+    const y = String(yearDate.getFullYear());
+    return getEntries().filter(e => e.date.slice(0,4) === y);
   }
 
   function computeTotals(entries){
@@ -1589,6 +1642,9 @@
   const recurringAmountInput = $('#recurringAmountInput');
   const recurringDescInput = $('#recurringDescInput');
   const recurringDayInput = $('#recurringDayInput');
+  const recurringFrequencySelect = $('#recurringFrequencySelect');
+  const recurringMonthField = $('#recurringMonthField');
+  const recurringMonthSelect = $('#recurringMonthSelect');
   const recurringTagChips = $('#recurringTagChips');
   const deleteRecurringRow = $('#deleteRecurringRow');
 
@@ -1608,6 +1664,10 @@
 
     list.forEach(rec => {
       const tag = tagsById[rec.tagId];
+      const interval = rec.intervalMonths || 1;
+      const freqLabel = FREQUENCY_LABELS[interval] || 'Mensile';
+      const anchorMonth = rec.anchorMonth ?? new Date(rec.createdAt).getMonth();
+      const monthLabel = interval > 1 ? ` (${MONTH_NAMES[anchorMonth]})` : '';
       const row = document.createElement('div');
       row.className = 'entry-row';
       row.style.cursor = 'default';
@@ -1615,7 +1675,7 @@
         <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${ICON.repeat}</div>
         <div class="entry-info">
           <div class="entry-desc">${escapeHtml(rec.description)}</div>
-          <div class="entry-tag">${tag ? tag.name : 'Senza tag'} · Giorno ${rec.dayOfMonth} · ${rec.type === 'uscita' ? '-' : '+'} ${formatCurrency(rec.amount)}</div>
+          <div class="entry-tag">${tag ? tag.name : 'Senza tag'} · ${freqLabel}${monthLabel} · Giorno ${rec.dayOfMonth} · ${rec.type === 'uscita' ? '-' : '+'} ${formatCurrency(rec.amount)}</div>
         </div>
         <button class="icon-btn" data-action="edit" aria-label="Modifica spesa ricorrente">${ICON.edit}</button>
       `;
@@ -1653,6 +1713,10 @@
     updateRecurringTypeToggleUI();
   });
 
+  recurringFrequencySelect.addEventListener('change', () => {
+    recurringMonthField.classList.toggle('hidden', recurringFrequencySelect.value === '1');
+  });
+
   function openRecurringSheet(recurringId){
     state.editingRecurringId = recurringId || null;
     const rec = recurringId ? getRecurring().find(r => r.id === recurringId) : null;
@@ -1664,6 +1728,13 @@
     recurringAmountInput.value = rec ? rec.amount : '';
     recurringDescInput.value = rec ? rec.description : '';
     recurringDayInput.value = rec ? rec.dayOfMonth : 1;
+
+    const interval = rec ? (rec.intervalMonths || 1) : 1;
+    const anchorMonth = rec ? (rec.anchorMonth ?? new Date(rec.createdAt).getMonth()) : new Date().getMonth();
+    recurringFrequencySelect.value = String(interval);
+    recurringMonthSelect.value = String(anchorMonth);
+    recurringMonthField.classList.toggle('hidden', interval === 1);
+
     deleteRecurringRow.classList.toggle('hidden', !rec);
 
     updateRecurringTypeToggleUI();
@@ -1697,12 +1768,17 @@
     if(!day || day < 1) day = 1;
     if(day > 28) day = 28;
 
+    const intervalMonths = parseInt(recurringFrequencySelect.value, 10) || 1;
+    const anchorMonth = parseInt(recurringMonthSelect.value, 10) || 0;
+
     const list = getRecurring();
     const payload = {
       type: state.recurringEntryType,
       amount: Math.round(amount * 100) / 100,
       description,
       dayOfMonth: day,
+      intervalMonths,
+      anchorMonth,
       tagId: state.recurringSelectedTagId
     };
 
@@ -1732,10 +1808,18 @@
   /* =========================================================
      SPESE RICORRENTI: revisione/conferma mensile
      ========================================================= */
+  function isRecurringDueThisMonth(rec, now){
+    const interval = rec.intervalMonths || 1;
+    if(interval <= 1) return true;
+    const anchor = rec.anchorMonth ?? new Date(rec.createdAt).getMonth();
+    return ((now.getMonth() - anchor + 12) % interval) === 0;
+  }
+
   function getPendingRecurringTemplates(){
-    const mk = monthKey(new Date());
-    const today = new Date().getDate();
-    return getRecurring().filter(r => r.lastHandledMonth !== mk && today >= r.dayOfMonth);
+    const now = new Date();
+    const mk = monthKey(now);
+    const today = now.getDate();
+    return getRecurring().filter(r => r.lastHandledMonth !== mk && today >= r.dayOfMonth && isRecurringDueThisMonth(r, now));
   }
 
   function renderRecurringPendingUI(){
@@ -1897,7 +1981,10 @@
 
   function renderReport(){
     const allEntries = getEntries();
-    const scopedEntries = state.reportScope === 'mese' ? entriesOfMonth(state.currentMonth) : allEntries;
+    let scopedEntries;
+    if(state.reportScope === 'mese') scopedEntries = entriesOfMonth(state.currentMonth);
+    else if(state.reportScope === 'anno') scopedEntries = entriesOfYear(state.currentMonth);
+    else scopedEntries = allEntries;
     const totals = computeTotals(scopedEntries);
 
     $('#repEntrate').textContent = formatCurrency(totals.entrate);
@@ -1905,10 +1992,10 @@
 
     renderDonutChart(scopedEntries);
     renderBarChart(allEntries);
+    renderPercentBreakdown(scopedEntries);
   }
 
-  function renderDonutChart(entries){
-    const wrap = $('#donutWrap');
+  function groupUsciteByTag(entries){
     const tags = getTags();
     const tagsById = Object.fromEntries(tags.map(t => [t.id, t]));
 
@@ -1918,12 +2005,16 @@
       byTag[key] = (byTag[key] || 0) + e.amount;
     });
 
-    const segments = Object.keys(byTag).map(tagId => ({
+    return Object.keys(byTag).map(tagId => ({
       label: tagId === '__none__' ? 'Senza tag' : (tagsById[tagId] ? tagsById[tagId].name : 'Senza tag'),
       color: tagId === '__none__' ? '#9497b8' : (tagsById[tagId] ? tagsById[tagId].color : '#9497b8'),
       value: byTag[tagId]
     })).sort((a,b) => b.value - a.value);
+  }
 
+  function renderDonutChart(entries){
+    const wrap = $('#donutWrap');
+    const segments = groupUsciteByTag(entries);
     const total = segments.reduce((s,x) => s + x.value, 0);
 
     if(total === 0){
@@ -1959,6 +2050,35 @@
       </div>`).join('');
 
     wrap.innerHTML = `<div class="donut-wrap chart-fade" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;width:100%;">${svg}<div class="donut-legend">${legend}</div></div>`;
+  }
+
+  function renderPercentBreakdown(entries){
+    const wrap = $('#percentWrap');
+    const segments = groupUsciteByTag(entries);
+    const total = segments.reduce((s,x) => s + x.value, 0);
+
+    if(total === 0){
+      wrap.innerHTML = `<div class="empty-state chart-fade" style="padding:20px 0;"><span class="empty-icon">${ICON.chart}</span>Nessuna uscita da mostrare in questo periodo.</div>`;
+      return;
+    }
+
+    const rows = segments.map(seg => {
+      const pct = (seg.value / total) * 100;
+      return `
+        <div class="percent-row">
+          <div class="percent-row-head">
+            <span class="legend-swatch" style="background:${seg.color}"></span>
+            <span class="percent-name">${escapeHtml(seg.label)}</span>
+            <span class="percent-value">${formatCurrency(seg.value)}</span>
+            <span class="percent-pct">${pct.toFixed(1)}%</span>
+          </div>
+          <div class="percent-bar-track">
+            <div class="percent-bar-fill" style="width:${pct}%; background:${seg.color};"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    wrap.innerHTML = `<div class="percent-list chart-fade">${rows}</div>`;
   }
 
   function renderBarChart(allEntries){
