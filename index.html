@@ -308,6 +308,7 @@
   }
   .icon-btn:active{background:var(--border);}
   .icon-btn.danger{color:var(--danger);}
+  #sortDirectionBtn{transition:transform .2s ease;}
   .add-tag-btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
     background:var(--surface-alt);
@@ -730,6 +731,13 @@
         <button data-type-filter="uscita">Uscite</button>
       </div>
       <div class="tag-chips" id="tagFilterChips"></div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="segmented" id="sortCriteria" style="flex:1;">
+          <button class="active" data-sort="date">Data</button>
+          <button data-sort="amount">Importo</button>
+        </div>
+        <button class="icon-btn" id="sortDirectionBtn" aria-label="Ordine decrescente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/></svg></button>
+      </div>
       <div id="entriesList"></div>
     </section>
 
@@ -1139,6 +1147,8 @@
     searchQuery: '',
     typeFilter: 'all',
     tagFilterId: 'all',
+    sortBy: 'date',
+    sortDir: 'desc',
     recurringMode: false,
     recurringQueue: [],
     currentRecurringId: null,
@@ -1333,11 +1343,57 @@
   });
 
   /* =========================================================
+     ORDINAMENTO LISTA MOVIMENTI
+     ========================================================= */
+  function updateSortUI(){
+    $$('#sortCriteria button').forEach(b => b.classList.toggle('active', b.dataset.sort === state.sortBy));
+    const dirBtn = $('#sortDirectionBtn');
+    dirBtn.style.transform = state.sortDir === 'asc' ? 'rotate(180deg)' : '';
+    dirBtn.setAttribute('aria-label', state.sortDir === 'asc' ? 'Ordine crescente' : 'Ordine decrescente');
+  }
+  $('#sortCriteria').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    state.sortBy = btn.dataset.sort;
+    updateSortUI();
+    renderEntries();
+  });
+  $('#sortDirectionBtn').addEventListener('click', () => {
+    state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+    updateSortUI();
+    renderEntries();
+  });
+
+  /* =========================================================
      RENDER: LISTA MOVIMENTI
      ========================================================= */
+  function buildEntryRow(entry, tagsById){
+    const tag = tagsById[entry.tagId];
+    const row = document.createElement('div');
+    row.className = 'entry-row';
+    row.innerHTML = `
+      <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${tag ? '' : ICON.tagIcon}</div>
+      <div class="entry-info">
+        <div class="entry-desc">${escapeHtml(entry.description) || (tag ? tag.name : 'Senza tag')}</div>
+        <div class="entry-tag">${tag ? tag.name : 'Senza tag'}${entry.receiptImage ? ' <span style="display:inline-flex;vertical-align:middle;margin-left:4px;color:var(--text-muted);">' + ICON.clip + '</span>' : ''}</div>
+      </div>
+      <div class="entry-amount ${entry.type}">${entry.type === 'uscita' ? '-' : '+'} ${formatCurrency(entry.amount)}</div>
+    `;
+    row.addEventListener('click', () => openEntrySheet(entry.id));
+    return row;
+  }
+
   function renderEntries(){
     const monthEntries = entriesOfMonth(state.currentMonth);
-    const entries = applyFilters(monthEntries).slice().sort((a,b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+    const entries = applyFilters(monthEntries).slice();
+    const dir = state.sortDir === 'asc' ? 1 : -1;
+
+    if(state.sortBy === 'amount'){
+      entries.sort((a,b) => (a.amount - b.amount) * dir);
+    }else{
+      entries.sort((a,b) => (a.date.localeCompare(b.date) || (a.createdAt - b.createdAt)) * dir);
+    }
+
     entriesList.innerHTML = '';
 
     if(entries.length === 0){
@@ -1355,13 +1411,22 @@
     }
 
     const tagsById = Object.fromEntries(getTags().map(t => [t.id, t]));
+
+    if(state.sortBy === 'amount'){
+      const flatEl = document.createElement('div');
+      flatEl.className = 'day-group';
+      entries.forEach(entry => flatEl.appendChild(buildEntryRow(entry, tagsById)));
+      entriesList.appendChild(flatEl);
+      return;
+    }
+
     const groups = {};
     entries.forEach(e => {
       if(!groups[e.date]) groups[e.date] = [];
       groups[e.date].push(e);
     });
 
-    Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(dateKey => {
+    Object.keys(groups).sort((a,b) => a.localeCompare(b) * dir).forEach(dateKey => {
       const dayEl = document.createElement('div');
       dayEl.className = 'day-group';
 
@@ -1370,21 +1435,7 @@
       heading.textContent = dayHeadingFmt.format(new Date(dateKey + 'T00:00:00'));
       dayEl.appendChild(heading);
 
-      groups[dateKey].forEach(entry => {
-        const tag = tagsById[entry.tagId];
-        const row = document.createElement('div');
-        row.className = 'entry-row';
-        row.innerHTML = `
-          <div class="tag-dot" style="background:${tag ? tag.color : '#9497b8'}">${tag ? '' : ICON.tagIcon}</div>
-          <div class="entry-info">
-            <div class="entry-desc">${escapeHtml(entry.description) || (tag ? tag.name : 'Senza tag')}</div>
-            <div class="entry-tag">${tag ? tag.name : 'Senza tag'}${entry.receiptImage ? ' <span style="display:inline-flex;vertical-align:middle;margin-left:4px;color:var(--text-muted);">' + ICON.clip + '</span>' : ''}</div>
-          </div>
-          <div class="entry-amount ${entry.type}">${entry.type === 'uscita' ? '-' : '+'} ${formatCurrency(entry.amount)}</div>
-        `;
-        row.addEventListener('click', () => openEntrySheet(entry.id));
-        dayEl.appendChild(row);
-      });
+      groups[dateKey].forEach(entry => dayEl.appendChild(buildEntryRow(entry, tagsById)));
 
       entriesList.appendChild(dayEl);
     });
@@ -2499,6 +2550,7 @@
   initStorage();
   initTheme();
   initOnboarding();
+  updateSortUI();
   renderAll();
 
   /* =========================================================
